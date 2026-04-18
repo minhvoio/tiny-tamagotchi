@@ -4,13 +4,13 @@
 
 Run from `tiny-tamagotchi/`. Every command must exit with code 0.
 
-| Command | Must produce |
-| --- | --- |
-| `pnpm lint` | Zero errors, zero warnings. |
-| `pnpm typecheck` | `tsc --noEmit` passes. |
-| `pnpm format:check` | Prettier reports all files formatted. |
-| `pnpm test` | All prior tests still pass plus Phase 7 landmark and responsive RTL tests. Zero failures, zero skipped. |
-| `pnpm build` | Next.js production build succeeds. |
+| Command             | Must produce                                                                                            |
+| ------------------- | ------------------------------------------------------------------------------------------------------- |
+| `pnpm lint`         | Zero errors, zero warnings.                                                                             |
+| `pnpm typecheck`    | `tsc --noEmit` passes.                                                                                  |
+| `pnpm format:check` | Prettier reports all files formatted.                                                                   |
+| `pnpm test`         | All prior tests still pass plus Phase 7 landmark and responsive RTL tests. Zero failures, zero skipped. |
+| `pnpm build`        | Next.js production build succeeds.                                                                      |
 
 ### Specific assertions
 
