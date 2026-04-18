@@ -1,0 +1,11 @@
+'use client';
+
+import { ActionButton } from '@/components/ActionButton';
+import { useTamagotchi } from '@/hooks/useTamagotchi';
+
+export function RestButton() {
+  const { state, dispatch } = useTamagotchi();
+  const label = state.isResting ? 'Wake' : 'Rest';
+
+  return <ActionButton label={label} onPress={() => dispatch({ type: 'REST' })} />;
+}

@@ -4,11 +4,19 @@ import { Pet } from '@/components/Pet';
 import { PetStage } from '@/components/PetStage';
 import { StatBar } from '@/components/StatBar';
 import { FeedButton } from '@/components/FeedButton';
+import { PlayButton } from '@/components/PlayButton';
+import { RestButton } from '@/components/RestButton';
 import { TamagotchiProvider, useTamagotchi } from '@/hooks/useTamagotchi';
 
-function HungerBar() {
+function VitalsPanel() {
   const { state } = useTamagotchi();
-  return <StatBar label="Hunger" value={state.vitals.hunger} />;
+  return (
+    <div className="flex flex-col gap-3">
+      <StatBar label="Hunger" value={state.vitals.hunger} />
+      <StatBar label="Happiness" value={state.vitals.happiness} />
+      <StatBar label="Energy" value={state.vitals.energy} />
+    </div>
+  );
 }
 
 export default function Home() {
@@ -19,8 +27,12 @@ export default function Home() {
         <PetStage>
           <Pet />
         </PetStage>
-        <HungerBar />
-        <FeedButton />
+        <VitalsPanel />
+        <div className="flex gap-3">
+          <FeedButton />
+          <PlayButton />
+          <RestButton />
+        </div>
       </main>
     </TamagotchiProvider>
   );
