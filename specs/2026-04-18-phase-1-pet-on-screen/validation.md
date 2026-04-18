@@ -58,7 +58,7 @@ Run from `tiny-tamagotchi/`. Every command must exit with code 0.
 
 Run **after** the automated tests pass and **before** merging. `tsc --noEmit` and Vitest prove types + component rendering in jsdom, but they don't exercise the actual browser rendering path (real CSS, real compositor, real prefers-reduced-motion). The `webapp-testing` skill closes that gap.
 
-Load the skill and run `scripts/with_server.py` with `pnpm dev` on port 3000, then execute a Playwright script that performs:
+Load the skill and run `scripts/with_server.py` with `pnpm start` on port 3000 (after `pnpm build`) so the browser exercises the production rendering path. Next.js dev mode keeps an HMR websocket open, so Playwright's `networkidle` / `load` waits never settle against `pnpm dev`. Then execute a Playwright script that performs:
 
 1. **Baseline capture**: navigate to `http://localhost:3000`, `wait_for_load_state('networkidle')`, screenshot to `/tmp/phase-1-after.png`.
 2. **DOM assertions** (reconnaissance-then-action pattern):
