@@ -12,7 +12,7 @@ function StateReader() {
       <span data-testid="energy">{state.vitals.energy}</span>
       <span data-testid="resting">{String(state.isResting)}</span>
       <span data-testid="pet-state">{state.state}</span>
-      <button type="button" onClick={() => dispatch({ type: 'FEED' })}>
+      <button type="button" onClick={() => dispatch({ type: 'FEED', nowMs: 0 })}>
         feed-from-test
       </button>
       <button type="button" onClick={() => dispatch({ type: '__SEED__', preset: 'sick-near' })}>

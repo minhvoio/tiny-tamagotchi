@@ -17,7 +17,7 @@ function SeedOnMount({ preset }: { preset: SeedPreset }) {
 function HealTrigger() {
   const { dispatch } = useTamagotchi();
   return (
-    <button type="button" onClick={() => dispatch({ type: 'HEAL' })}>
+    <button type="button" onClick={() => dispatch({ type: 'HEAL', nowMs: 0 })}>
       test-heal
     </button>
   );

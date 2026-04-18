@@ -16,7 +16,7 @@ describe('scope contract — state machine is the only writer of `state`', () =>
     for (const actionType of ['FEED', 'PLAY', 'REST'] as const) {
       for (const stateName of ['Normal', 'Sick', 'Evolved'] as const) {
         const start = petWith(stateName, stateName === 'Evolved');
-        const next = reducer(start, { type: actionType });
+        const next = reducer(start, { type: actionType, nowMs: 0 } as never);
         expect(next.state).toBe(start.state);
         expect(next.hasEvolved).toBe(start.hasEvolved);
       }
