@@ -7,7 +7,7 @@ Each group is independently implementable and testable. Build in order; later gr
 ## 1. Pure game core (test-first)
 
 1.1. Create `src/game/constants.ts` exporting `MAX_STAT`, `MIN_STAT`, `TICK_INTERVAL_MS`, `DECAY_PER_TICK`, `FEED_AMOUNT`.
-1.2. Create `src/game/state.ts` exporting types `Stat`, `Vitals` (only `{ hunger: Stat }` in Phase 2), `PetModel` (only `{ vitals: Vitals }` in Phase 2), `Action` (union of `FEED` and `TICK`), and `initialState: PetModel` with hunger = 100.
+1.2. Create `src/game/state.ts` exporting types `Stat`, `Vitals` (only `{ hunger: Stat }` in Phase 2), `PetModel` (only `{ vitals: Vitals }` in Phase 2), the `Action` union (`FEED` and `TICK`) **co-located** in this file, and `initialState: PetModel` with hunger = 100. Do **not** create `src/game/actions.ts` — the action union stays next to the state type it mutates until the union outgrows this file.
 1.3. Create `src/game/util.ts` with `export function clamp(value: number, min: number, max: number): number { ... }`. Cover it with trivial inline tests in the reducer test file.
 1.4. Create `tests/game/reducer.test.ts` first with the test cases listed in `requirements.md` §"Tests — reducer". All tests fail (no implementation yet).
 1.5. Create `src/game/reducer.ts` implementing:

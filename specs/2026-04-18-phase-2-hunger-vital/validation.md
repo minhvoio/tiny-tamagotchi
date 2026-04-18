@@ -14,7 +14,7 @@ Run from `tiny-tamagotchi/`. Every command must exit with code 0.
 
 ### Specific assertions
 
-- `src/game/state.ts` defines `Stat`, `PetModel`, and an `Action` union of exactly `'FEED' | 'TICK'` in Phase 2. No other action names present.
+- `src/game/state.ts` defines `Stat`, `PetModel`, and an `Action` union of exactly `'FEED' | 'TICK'` in Phase 2 — co-located in this single file. No other action names present. `src/game/actions.ts` does **not** exist in Phase 2.
 - `src/game/constants.ts` exports the five named constants with the agreed values (`MAX_STAT=100`, `MIN_STAT=0`, `TICK_INTERVAL_MS=3000`, `DECAY_PER_TICK=1`, `FEED_AMOUNT=20`).
 - `src/game/reducer.ts` has **no** imports from `react`, `next`, or `@/hooks/*` (pure logic rule).
 - The reducer clamps `hunger` to `[0, 100]` for both FEED and TICK in every test case in `reducer.test.ts`.
