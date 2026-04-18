@@ -11,7 +11,7 @@ interface PetStageProps {
 export function PetStage({ children }: PetStageProps) {
   const { state } = useTamagotchi();
   return (
-    <div className={styles.stage}>
+    <div className={`${styles.stage} mx-auto w-full max-w-xs`}>
       {state.state === 'Sick' && (
         <span data-testid="sick-indicator" aria-hidden="true" className={styles.sickIndicator}>
           •••

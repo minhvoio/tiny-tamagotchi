@@ -31,17 +31,30 @@ function PetScreen() {
   }
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-8">
-      <h1 className="text-3xl font-semibold tracking-tight">Tiny Tamagotchi</h1>
+      <a
+        href="#pet-actions"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-white focus:px-4 focus:py-2 focus:text-black focus:shadow"
+      >
+        Skip to actions
+      </a>
+      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Tiny Tamagotchi</h1>
       <PetStage>
         <Pet />
       </PetStage>
-      <VitalsPanel />
-      <div className="flex gap-3">
+      <section aria-label="Pet vitals">
+        <VitalsPanel />
+      </section>
+      <section
+        id="pet-actions"
+        aria-label="Pet actions"
+        tabIndex={-1}
+        className="grid grid-cols-2 gap-3 sm:flex sm:flex-row"
+      >
         <FeedButton />
         <PlayButton />
         <RestButton />
         <HealButton />
-      </div>
+      </section>
       <div className="flex items-center gap-4 text-sm text-neutral-600">
         <span>{state.name}</span>
         <ResetButton dispatch={dispatch} />

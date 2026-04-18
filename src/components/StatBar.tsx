@@ -12,7 +12,7 @@ export function StatBar({ label, value, max = MAX_STAT }: StatBarProps) {
   const percent = max === 0 ? 0 : (safeValue / max) * 100;
 
   return (
-    <div className="flex w-64 flex-col gap-1">
+    <div className="flex w-full flex-col gap-1 px-3 sm:w-64 sm:px-0">
       <div className="flex items-baseline justify-between text-sm">
         <span className="font-medium">{label}</span>
         <span className="tabular-nums text-neutral-600">

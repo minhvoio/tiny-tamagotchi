@@ -55,7 +55,7 @@ export function NamingForm({ dispatch }: NamingFormProps) {
         )}
         <button
           type="submit"
-          className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-5 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-emerald-500"
+          className="inline-flex items-center justify-center rounded-full bg-emerald-700 px-5 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-emerald-600"
         >
           Confirm
         </button>
