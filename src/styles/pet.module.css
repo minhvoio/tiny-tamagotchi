@@ -1,13 +1,8 @@
-/*
- * Phase 1 palette tokens — kept local so Phase 4 can swap them for a Sick/Evolved look.
- *   --pet-body:  muted pastel used for the creature's body
- *   --pet-floor: slightly darker pastel used for the stage floor strip
- */
-
 .pet {
   --pet-body: #f6c6a4;
   --pet-eye: #2a2233;
   --pet-mouth: #2a2233;
+  --pet-crown: transparent;
 
   image-rendering: pixelated;
   animation: bob 2s ease-in-out infinite;
@@ -15,6 +10,27 @@
   width: 160px;
   height: 160px;
   color: var(--pet-body);
+}
+
+.pet[data-state='Normal'] {
+  --pet-body: #f6c6a4;
+  --pet-eye: #2a2233;
+  --pet-mouth: #2a2233;
+  --pet-crown: transparent;
+}
+
+.pet[data-state='Sick'] {
+  --pet-body: #9fb89a;
+  --pet-eye: #3a4a3a;
+  --pet-mouth: #3a4a3a;
+  --pet-crown: transparent;
+}
+
+.pet[data-state='Evolved'] {
+  --pet-body: #f5c66b;
+  --pet-eye: #2a2233;
+  --pet-mouth: #2a2233;
+  --pet-crown: #fbbf24;
 }
 
 .stage {
@@ -39,6 +55,14 @@
   opacity: 0.7;
 }
 
+.sickIndicator {
+  font-size: 1.25rem;
+  letter-spacing: 0.1em;
+  color: #6b8a6e;
+  animation: bob 1s ease-in-out infinite;
+  margin-bottom: 0.25rem;
+}
+
 @keyframes bob {
   0% {
     transform: translateY(0);
@@ -53,6 +77,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .pet {
+    animation: none;
+  }
+
+  .sickIndicator {
     animation: none;
   }
 }

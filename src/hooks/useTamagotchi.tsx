@@ -1,6 +1,13 @@
 'use client';
 
-import { createContext, useContext, useReducer, type Dispatch, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useReducer,
+  type Dispatch,
+  type ReactNode,
+} from 'react';
 import { TICK_INTERVAL_MS } from '@/game/constants';
 import { reducer } from '@/game/reducer';
 import { initialState, type Action, type PetModel } from '@/game/state';
@@ -24,6 +31,13 @@ export function TamagotchiProvider({
 }: TamagotchiProviderProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
   useTick(dispatch, tickIntervalMs);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const seed = new URLSearchParams(window.location.search).get('__seed');
+    if (seed !== null) {
+      dispatch({ type: '__SEED__', preset: seed });
+    }
+  }, []);
   return (
     <TamagotchiContext.Provider value={{ state, dispatch }}>{children}</TamagotchiContext.Provider>
   );
