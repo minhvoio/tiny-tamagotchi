@@ -51,6 +51,20 @@ pnpm typecheck     # tsc --noEmit
 pnpm format        # Prettier write
 ```
 
+## Deployment
+
+The app is 100% client-side. No environment variables are required.
+
+To deploy to Vercel for the first time:
+
+1. Install the Vercel CLI: `npm install -g vercel`
+2. Run `vercel link` to connect the project to your Vercel account.
+3. Run `vercel --prod` to deploy.
+
+After the first deploy, Vercel auto-deploys every push to `main` via its GitHub integration. The production URL is listed here once the first deploy completes:
+
+**Production URL:** _add after first deploy_
+
 ## Project Status
 
 Currently in **Phase 0 — Project Skeleton**. See [`specs/roadmap.md`](./specs/roadmap.md) for the full phase plan:
