@@ -4,8 +4,8 @@ import { ActionButton } from '@/components/ActionButton';
 import { useTamagotchi } from '@/hooks/useTamagotchi';
 
 export function RestButton() {
-  const { state, dispatch } = useTamagotchi();
+  const { state, dispatchWithNow } = useTamagotchi();
   const label = state.isResting ? 'Wake' : 'Rest';
 
-  return <ActionButton label={label} onPress={() => dispatch({ type: 'REST' })} />;
+  return <ActionButton label={label} onPress={() => dispatchWithNow({ type: 'REST' })} />;
 }
