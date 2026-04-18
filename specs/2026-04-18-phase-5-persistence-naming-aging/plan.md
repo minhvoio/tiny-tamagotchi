@@ -142,10 +142,7 @@ useEffect(() => {
   if (stored && stored.name !== '') {
     // Replace reducer state with stored value
     dispatch({ type: '__HYDRATE__', state: stored }); // see §4.2
-    const elapsedMs = Math.max(
-      0,
-      Math.min(Date.now() - stored.lastTickAt, MAX_OFFLINE_MS),
-    );
+    const elapsedMs = Math.max(0, Math.min(Date.now() - stored.lastTickAt, MAX_OFFLINE_MS));
     dispatch({ type: 'TICK', elapsedMs, nowMs: Date.now() });
   }
 }, []); // runs once on mount
