@@ -40,7 +40,7 @@ describe('scope contract — state machine is the only writer of `state`', () =>
   it('TICK alone never flips Evolved back to Normal across 500 TICKs', () => {
     let s: PetModel = petWith('Evolved', true);
     for (let i = 0; i < 500; i++) {
-      s = reducer(s, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS });
+      s = reducer(s, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS, nowMs: 0 });
       expect(s.state === 'Evolved' || s.state === 'Sick').toBe(true);
       expect(s.hasEvolved).toBe(true);
     }
