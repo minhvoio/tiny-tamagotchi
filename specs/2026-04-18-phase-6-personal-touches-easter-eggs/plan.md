@@ -10,10 +10,10 @@ Add personality to the pet through CSS animations and DOM attribute changes. Bui
 
 ```ts
 export const EGG_MAX_STREAK_WINDOW_MS = 30_000;
-export const QUEASY_DURATION_MS       = 60_000;
+export const QUEASY_DURATION_MS = 60_000;
 export const SLEEP_CAP_WINDOW_MINUTES = 5;
-export const SLEEP_CAP_DURATION_MS    = 10_000;
-export const CONFETTI_DURATION_MS     = 3_000;
+export const SLEEP_CAP_DURATION_MS = 10_000;
+export const CONFETTI_DURATION_MS = 3_000;
 ```
 
 1.2. In `src/game/state.ts`:
@@ -24,13 +24,16 @@ export const CONFETTI_DURATION_MS     = 3_000;
 - Change `{ type: 'HEAL' }` to `{ type: 'HEAL'; nowMs: number }`.
 - Add to `PetModel`:
   ```ts
-  feedStreak:    { count: number; lastFeedAt: number };
-  queasyUntil:   number; // epoch ms; 0 when inactive
+  feedStreak: {
+    count: number;
+    lastFeedAt: number;
+  }
+  queasyUntil: number; // epoch ms; 0 when inactive
   sleepCapUntil: number; // epoch ms; 0 when inactive
   ```
 - Update `initialState`: `feedStreak: { count: 0, lastFeedAt: 0 }`, `queasyUntil: 0`, `sleepCapUntil: 0`.
 
-1.3. Run `pnpm typecheck` -- existing call sites will fail; the next steps fix them.
+  1.3. Run `pnpm typecheck` -- existing call sites will fail; the next steps fix them.
 
 ---
 
@@ -57,13 +60,13 @@ export const CONFETTI_DURATION_MS     = 3_000;
 
 - Dispatch the full Konami key sequence via `KonamiListener`; assert no reducer state changed at all (no `feedStreak` change, no `queasyUntil` change, no `sleepCapUntil` change, no vitals change). This is the prose-to-test invariant for "Konami is animation-only."
 
-2.2. Update `src/game/reducer.ts`:
+  2.2. Update `src/game/reducer.ts`:
 
 - FEED branch: compute `feedStreak` update (gap check, increment, queasy activation). Apply midnight check. Apply existing stat deltas. Order: streak logic first, then midnight check, then stat deltas.
 - PLAY/REST/HEAL branches: reset `feedStreak.count` to 0. Apply midnight check. Apply existing stat deltas.
 - Add two pure helper functions at the top of the file (not exported): `hourOf(ms: number): number` and `minuteOf(ms: number): number`. Both use `new Date(ms).getHours()` / `.getMinutes()`. These are the only places in `src/game/` that construct a `Date` from a number; they never call `Date.now()`.
 
-2.3. Run `pnpm test` -- reducer tests go green. All Phase 3-5 assertions remain green.
+  2.3. Run `pnpm test` -- reducer tests go green. All Phase 3-5 assertions remain green.
 
 ---
 
@@ -75,9 +78,9 @@ export const CONFETTI_DURATION_MS     = 3_000;
 - Store `getNow` in a ref so it is stable across renders.
 - Export a `useDispatchWithNow()` helper (or extend the existing context value) that wraps `dispatch` and injects `nowMs: getNow().getTime()` into FEED, PLAY, REST, HEAL before forwarding to the reducer.
 
-3.2. Update `FeedButton.tsx`, `PlayButton.tsx`, `RestButton.tsx`, `HealButton.tsx` to call `useDispatchWithNow()` instead of raw `dispatch`. Each button no longer constructs `nowMs` itself.
+  3.2. Update `FeedButton.tsx`, `PlayButton.tsx`, `RestButton.tsx`, `HealButton.tsx` to call `useDispatchWithNow()` instead of raw `dispatch`. Each button no longer constructs `nowMs` itself.
 
-3.3. Run `pnpm typecheck` -- all action call sites now pass `nowMs` correctly.
+  3.3. Run `pnpm typecheck` -- all action call sites now pass `nowMs` correctly.
 
 ---
 
@@ -95,9 +98,15 @@ export function petVariant(name: string): 0 | 1 | 2 {
 4.2. In `src/styles/pet.module.css`, add:
 
 ```css
-.pet-variant-0 { --pet-tint: #ffd6e0; }
-.pet-variant-1 { --pet-tint: #d6f0ff; }
-.pet-variant-2 { --pet-tint: #d6ffd6; }
+.pet-variant-0 {
+  --pet-tint: #ffd6e0;
+}
+.pet-variant-1 {
+  --pet-tint: #d6f0ff;
+}
+.pet-variant-2 {
+  --pet-tint: #d6ffd6;
+}
 ```
 
 Add a tint overlay `<rect>` inside the SVG (in `Pet.tsx`) that reads `fill="var(--pet-tint)"` at low opacity (e.g., `opacity="0.18"`). The rect sits behind the body ellipses.
@@ -110,7 +119,7 @@ Add a tint overlay `<rect>` inside the SVG (in `Pet.tsx`) that reads `fill="var(
 - Assert `petVariant('Blob') === petVariant('Blob')` and the result is in `{0, 1, 2}`.
 - Assert three distinct names produce results covering at least two distinct variants (distribution sanity check, not a strict coverage requirement).
 
-4.5. Write `tests/components/Pet.test.tsx` (or extend it):
+  4.5. Write `tests/components/Pet.test.tsx` (or extend it):
 
 - **Linkage test:** render `<Pet />` inside a provider with `state.name = 'Blob'`; assert the SVG element has a class matching `/pet-variant-[012]/`. This catches anyone who removes the variant class application.
 
@@ -121,9 +130,15 @@ Add a tint overlay `<rect>` inside the SVG (in `Pet.tsx`) that reads `fill="var(
 5.1. In `src/styles/pet.module.css`, add keyframes:
 
 ```css
-@keyframes chomp   { /* jaw-drop and snap, 0.6 s */ }
-@keyframes hop     { /* vertical bounce, 0.6 s */ }
-@keyframes sparkle { /* scale pulse + opacity, 1.2 s */ }
+@keyframes chomp {
+  /* jaw-drop and snap, 0.6 s */
+}
+@keyframes hop {
+  /* vertical bounce, 0.6 s */
+}
+@keyframes sparkle {
+  /* scale pulse + opacity, 1.2 s */
+}
 ```
 
 The `Zz` overlay is not a keyframe on the pet SVG; it is a separate `<span>` that appears while `isResting` and fades at its edges via a CSS mask or opacity gradient.
@@ -131,12 +146,20 @@ The `Zz` overlay is not a keyframe on the pet SVG; it is a separate `<span>` tha
 5.2. In `pet.module.css`, add attribute selectors:
 
 ```css
-[data-reaction="chomp"]   { animation: chomp   0.6s ease-out forwards; }
-[data-reaction="hop"]     { animation: hop     0.6s ease-out forwards; }
-[data-reaction="sparkle"] { animation: sparkle 1.2s ease-out forwards; }
+[data-reaction='chomp'] {
+  animation: chomp 0.6s ease-out forwards;
+}
+[data-reaction='hop'] {
+  animation: hop 0.6s ease-out forwards;
+}
+[data-reaction='sparkle'] {
+  animation: sparkle 1.2s ease-out forwards;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  [data-reaction] { animation-duration: 0s; }
+  [data-reaction] {
+    animation-duration: 0s;
+  }
 }
 ```
 
@@ -147,7 +170,7 @@ The `Zz` overlay is not a keyframe on the pet SVG; it is a separate `<span>` tha
 - Attach an `onAnimationEnd` handler to the SVG that clears `reaction` to `''`.
 - For REST/HEAL: `Zz` stays while `isResting` is true; clear it when `isResting` becomes false.
 
-5.4. Write `tests/components/Pet.test.tsx` reaction tests:
+  5.4. Write `tests/components/Pet.test.tsx` reaction tests:
 
 - **Linkage test:** dispatch FEED; assert `data-reaction="chomp"` is present on the SVG immediately after dispatch.
 - **Stale-reaction test (silent-break guard):** dispatch FEED; fire `animationend` on the SVG; assert `data-reaction` attribute is removed (or empty). This catches anyone who skips the `animationend` cleanup.
@@ -161,17 +184,29 @@ The `Zz` overlay is not a keyframe on the pet SVG; it is a separate `<span>` tha
 6.1. In `pet.module.css`, add keyframes:
 
 ```css
-@keyframes yawn       { /* mouth-open stretch, 2 s */ }
-@keyframes blink      { /* eye-close and open, 2 s */ }
-@keyframes look-around { /* slight horizontal sway, 2 s */ }
+@keyframes yawn {
+  /* mouth-open stretch, 2 s */
+}
+@keyframes blink {
+  /* eye-close and open, 2 s */
+}
+@keyframes look-around {
+  /* slight horizontal sway, 2 s */
+}
 ```
 
 Add attribute selectors:
 
 ```css
-[data-idle-animation="yawn"]        { animation: yawn        2s ease-in-out; }
-[data-idle-animation="blink"]       { animation: blink       2s ease-in-out; }
-[data-idle-animation="look-around"] { animation: look-around 2s ease-in-out; }
+[data-idle-animation='yawn'] {
+  animation: yawn 2s ease-in-out;
+}
+[data-idle-animation='blink'] {
+  animation: blink 2s ease-in-out;
+}
+[data-idle-animation='look-around'] {
+  animation: look-around 2s ease-in-out;
+}
 ```
 
 No `prefers-reduced-motion` block needed here because the JS side never sets the attribute under reduce.
@@ -184,7 +219,7 @@ No `prefers-reduced-motion` block needed here because the JS side never sets the
 - After 2 000 ms, clear `data-idle-animation` (use a `setTimeout` inside the tick handler; cancel it on the next tick if a new animation fires).
 - Clean up both `setInterval` and any pending `setTimeout` on unmount.
 
-6.3. Write `tests/components/Pet.test.tsx` idle tests:
+  6.3. Write `tests/components/Pet.test.tsx` idle tests:
 
 - **Reduced-motion test (silent-break guard):** render with fake `matchMedia` returning reduce; advance fake timers 100 ticks (100 seconds); assert `data-idle-animation` attribute never appears on the SVG. This catches anyone who removes the `prefers-reduced-motion` guard.
 - **Fire test:** render with fake `matchMedia` returning no-preference; mock `Math.random` to always return 0.01 (below 5% threshold); advance 1 tick; assert `data-idle-animation` is set to one of the three valid values.
@@ -198,14 +233,20 @@ No `prefers-reduced-motion` block needed here because the JS side never sets the
 
 - Each tick: compare `Date.now()` against `state.queasyUntil`. If `Date.now() < state.queasyUntil`, set `data-egg="queasy"` on the SVG. Otherwise clear it.
 
-7.2. In `pet.module.css`, add:
+  7.2. In `pet.module.css`, add:
 
 ```css
-@keyframes queasy { /* side-to-side wobble */ }
-[data-egg="queasy"] { animation: queasy 1s ease-in-out infinite; }
+@keyframes queasy {
+  /* side-to-side wobble */
+}
+[data-egg='queasy'] {
+  animation: queasy 1s ease-in-out infinite;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  [data-egg="queasy"] { animation: none; }
+  [data-egg='queasy'] {
+    animation: none;
+  }
 }
 ```
 
@@ -241,14 +282,20 @@ No `prefers-reduced-motion` block needed here because the JS side never sets the
 - Under `prefers-reduced-motion: reduce`, render `<span data-testid="konami-confetti" aria-hidden="true">*</span>` for 300 ms instead.
 - Clean up the `keydown` listener on unmount.
 
-9.2. In `pet.module.css` (or a new `konami.module.css` -- use `pet.module.css` to avoid a new file):
+  9.2. In `pet.module.css` (or a new `konami.module.css` -- use `pet.module.css` to avoid a new file):
 
 ```css
-@keyframes confetti-fall { /* multi-color particle burst, 3 s */ }
-.confetti { animation: confetti-fall 3s ease-out forwards; }
+@keyframes confetti-fall {
+  /* multi-color particle burst, 3 s */
+}
+.confetti {
+  animation: confetti-fall 3s ease-out forwards;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .confetti { animation: none; }
+  .confetti {
+    animation: none;
+  }
 }
 ```
 

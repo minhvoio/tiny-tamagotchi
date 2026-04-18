@@ -4,13 +4,13 @@
 
 Run from `tiny-tamagotchi/`. Every command must exit with code 0.
 
-| Command             | Must produce |
-| ------------------- | ------------ |
-| `pnpm lint`         | Zero errors, zero warnings. |
-| `pnpm typecheck`    | `tsc --noEmit` passes. |
-| `pnpm format:check` | Prettier reports all files formatted. |
+| Command             | Must produce                                                                                 |
+| ------------------- | -------------------------------------------------------------------------------------------- |
+| `pnpm lint`         | Zero errors, zero warnings.                                                                  |
+| `pnpm typecheck`    | `tsc --noEmit` passes.                                                                       |
+| `pnpm format:check` | Prettier reports all files formatted.                                                        |
 | `pnpm test`         | All prior tests still pass plus all Phase 6 tests listed below. Zero failures, zero skipped. |
-| `pnpm build`        | Next.js production build succeeds. |
+| `pnpm build`        | Next.js production build succeeds.                                                           |
 
 ### Specific assertions
 
@@ -95,14 +95,14 @@ Run from `tiny-tamagotchi/`. Every command must exit with code 0.
 
 Each guard below is a named test that catches a specific refactor without relying on the happy-path tests.
 
-| Refactor scenario | Guard test |
-| ----------------- | ---------- |
+| Refactor scenario                                                       | Guard test                                                                                                                                    |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | Someone adds +5 happiness to the queasy branch to make the egg "matter" | Stat-unchanged invariant: dispatch 10 FEEDs; assert `state.vitals.happiness` equals exactly the Phase 3 clamped result, not one point higher. |
-| Someone skips clearing `data-reaction` on `animationend` | Stale-reaction test: dispatch FEED; fire `animationend`; assert `data-reaction` attribute is absent. |
-| Someone removes the `prefers-reduced-motion` guard on idle animations | Reduced-motion idle test: fake `matchMedia` returning reduce; advance 100 ticks; assert `data-idle-animation` never appears. |
-| Someone changes the 10-feed streak threshold to 9 or 11 | Exact-count test: 9 FEEDs assert `queasyUntil === 0`; 10th FEED asserts `queasyUntil > 0`. |
-| Someone seeds variants via `Math.random()` instead of the name hash | Determinism test: call `petVariant('Blob')` 50 times; assert all results are identical. |
-| Someone drops the `removeEventListener` cleanup in `KonamiListener` | Listener cleanup test: unmount; fire full sequence; assert confetti does not appear. |
+| Someone skips clearing `data-reaction` on `animationend`                | Stale-reaction test: dispatch FEED; fire `animationend`; assert `data-reaction` attribute is absent.                                          |
+| Someone removes the `prefers-reduced-motion` guard on idle animations   | Reduced-motion idle test: fake `matchMedia` returning reduce; advance 100 ticks; assert `data-idle-animation` never appears.                  |
+| Someone changes the 10-feed streak threshold to 9 or 11                 | Exact-count test: 9 FEEDs assert `queasyUntil === 0`; 10th FEED asserts `queasyUntil > 0`.                                                    |
+| Someone seeds variants via `Math.random()` instead of the name hash     | Determinism test: call `petVariant('Blob')` 50 times; assert all results are identical.                                                       |
+| Someone drops the `removeEventListener` cleanup in `KonamiListener`     | Listener cleanup test: unmount; fire full sequence; assert confetti does not appear.                                                          |
 
 ---
 
