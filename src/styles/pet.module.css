@@ -1,0 +1,58 @@
+/*
+ * Phase 1 palette tokens — kept local so Phase 4 can swap them for a Sick/Evolved look.
+ *   --pet-body:  muted pastel used for the creature's body
+ *   --pet-floor: slightly darker pastel used for the stage floor strip
+ */
+
+.pet {
+  --pet-body: #f6c6a4;
+  --pet-eye: #2a2233;
+  --pet-mouth: #2a2233;
+
+  image-rendering: pixelated;
+  animation: bob 2s ease-in-out infinite;
+  display: block;
+  width: 160px;
+  height: 160px;
+  color: var(--pet-body);
+}
+
+.stage {
+  --pet-floor: #d9b58c;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 1.5rem;
+  position: relative;
+}
+
+.stage::after {
+  content: '';
+  display: block;
+  margin-top: 0.25rem;
+  width: 180px;
+  height: 10px;
+  border-radius: 9999px;
+  background-color: var(--pet-floor);
+  opacity: 0.7;
+}
+
+@keyframes bob {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet {
+    animation: none;
+  }
+}
