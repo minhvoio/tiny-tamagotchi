@@ -51,7 +51,7 @@ Extend Phase 3's reducer with a pure state-machine module, a `HEAL` action, per-
 - HEAL from Sick with `hasEvolved === true` returns `state === 'Evolved'`.
 - HEAL from Sick with `hasEvolved === false` returns `state === 'Normal'`.
 
-4.3. Extend `describe('reducer — TICK while awake')`:
+  4.3. Extend `describe('reducer — TICK while awake')`:
 
 - **Neglect counter increments** when a vital is at or below 10 and resets when it recovers above 10.
 - **Normal → Sick atomicity**: starting from `{ hunger: 8, neglectTicks.hunger: SICK_NEGLECT_TICKS - 1, state: 'Normal' }`, dispatch one `TICK` of `elapsedMs = TICK_INTERVAL_MS`. Assert the returned state has `state === 'Sick'` AND `neglectTicks.hunger === SICK_NEGLECT_TICKS` on the **same** returned object — not across two dispatches.
@@ -60,12 +60,12 @@ Extend Phase 3's reducer with a pure state-machine module, a `HEAL` action, per-
 - **hasEvolved is one-way**: from `{ hasEvolved: true, state: 'Evolved' }` over many TICKs (including Sick transitions), `hasEvolved` is never set back to `false`.
 - **Evolved does not re-evolve**: from `{ state: 'Evolved', hasEvolved: true, careTicks: 0, vitals all 100 }`, after `EVOLVE_CARE_TICKS + 5` ticks of care, `careTicks` stays at 0 (because the careTicks rule requires `prev.state === 'Normal'`).
 
-4.4. Extend `describe('reducer — TICK while resting')`:
+  4.4. Extend `describe('reducer — TICK while resting')`:
 
 - **Rest pauses neglect counters**: starting from `{ hunger: 5, neglectTicks.hunger: 3, isResting: true }`, dispatch several TICKs. Assert `neglectTicks.hunger` stays at 3 (paused, not reset).
 - **Rest pauses care counter**: starting from `{ vitals all 80, careTicks: 10, isResting: true, state: 'Normal' }`, dispatch several TICKs. Assert `careTicks` stays at 10.
 
-4.5. Add a `describe('reducer — forbidden transitions')` block:
+  4.5. Add a `describe('reducer — forbidden transitions')` block:
 
 - `Evolved → Normal` never happens via TICK or HEAL. (Assert across randomized care/neglect sequences.)
 - `Sick → Normal` never happens via TICK alone — only via HEAL.
@@ -92,12 +92,12 @@ Extend Phase 3's reducer with a pure state-machine module, a `HEAL` action, per-
 - When `state === 'Evolved'`, render a small `<path data-testid="crown" aria-hidden="true" />` sibling inside the same `<svg>` (a 3-point pixel crown, filled with `var(--pet-crown)`).
 - `<Pet />` stays a client-capable component but continues to avoid `"use client"` directly — it renders via the existing client page.
 
-6.2. `src/styles/pet.module.css`:
+  6.2. `src/styles/pet.module.css`:
 
 - Add three `[data-state="Normal"] { --pet-fill: ...; --pet-eye: ...; --pet-mouth: ...; --pet-crown: transparent; }` rules, plus `Sick` (muted green/grey) and `Evolved` (gold, crown `#fbbf24`).
 - Keep the existing `bob` keyframe and the `prefers-reduced-motion` override untouched.
 
-6.3. In `<PetStage />`, render a conditional `<span data-testid="sick-indicator" aria-hidden="true">•••</span>` when `useTamagotchi().state.state === 'Sick'`. Absent otherwise.
+  6.3. In `<PetStage />`, render a conditional `<span data-testid="sick-indicator" aria-hidden="true">•••</span>` when `useTamagotchi().state.state === 'Sick'`. Absent otherwise.
 
 ## 7. Add `<HealButton />`
 
@@ -115,7 +115,7 @@ Extend Phase 3's reducer with a pure state-machine module, a `HEAL` action, per-
 - Uses a `useRef` + `useEffect([state])` pattern: when the current state differs from the previous ref, compute `text = 'Pet is now ' + state`. Render `<div role="status" aria-live="polite" data-testid="state-announcer">{text}</div>`.
 - Initial render text is the empty string (no announcement on first paint).
 
-8.2. Wire `<HealButton />` into the page button row, **after** `<RestButton />`.
+  8.2. Wire `<HealButton />` into the page button row, **after** `<RestButton />`.
 
 ## 9. Component tests
 
@@ -126,18 +126,18 @@ Extend Phase 3's reducer with a pure state-machine module, a `HEAL` action, per-
 - Crown `data-testid="crown"` is present only when `state === 'Evolved'`.
 - The `pet` CSS Module class (regex-matched) is still applied on all three states — guards Phase 1's linkage.
 
-9.2. `tests/components/HealButton.test.tsx` (new):
+  9.2. `tests/components/HealButton.test.tsx` (new):
 
 - When `state !== 'Sick'`, the container is empty (no button in the DOM).
 - When `state === 'Sick'`, a button with name `Heal` renders, is enabled, dispatches HEAL on click, and vitals `<50` are raised to 50.
 
-9.3. `tests/components/StateAnnouncer.test.tsx` (new):
+  9.3. `tests/components/StateAnnouncer.test.tsx` (new):
 
 - Initial render: `data-testid="state-announcer"` has empty text content.
 - After a simulated state change to Sick, text becomes `Pet is now Sick`. After a change to Normal, text becomes `Pet is now Normal`.
 - The element has `role="status"` and `aria-live="polite"`.
 
-9.4. Update existing `tests/components/FeedButton.test.tsx` / `PlayButton.test.tsx` / `RestButton.test.tsx` **only** to tolerate the richer `PetModel` shape in the `make()` helper (no new button behaviors). Feed and Play explicitly are **not** disabled by `Sick` — add a test to `FeedButton.test.tsx` that asserts Feed still works when `state === 'Sick'`.
+  9.4. Update existing `tests/components/FeedButton.test.tsx` / `PlayButton.test.tsx` / `RestButton.test.tsx` **only** to tolerate the richer `PetModel` shape in the `make()` helper (no new button behaviors). Feed and Play explicitly are **not** disabled by `Sick` — add a test to `FeedButton.test.tsx` that asserts Feed still works when `state === 'Sick'`.
 
 ## 10. Test-only seed harness (`?__seed=...`)
 
@@ -148,9 +148,9 @@ Extend Phase 3's reducer with a pure state-machine module, a `HEAL` action, per-
 - `?__seed=sick-near` → `{ vitals: { hunger: 5, happiness: 50, energy: 50 }, neglectTicks: { hunger: SICK_NEGLECT_TICKS - 1, happiness: 0, energy: 0 }, state: 'Normal' }`.
 - `?__seed=evolved-near-sick` → `{ vitals: { hunger: 5, happiness: 50, energy: 50 }, neglectTicks: { hunger: SICK_NEGLECT_TICKS - 1, happiness: 0, energy: 0 }, state: 'Evolved', hasEvolved: true }`.
 
-10.3. Implement `__SEED__` as a new reducer action whose payload is the preset name. The reducer resolves the name to the preset object (exhaustive switch) and merges it into the current state. `__SEED__` is the **only** reducer action that writes `state` / `hasEvolved` directly without going through `states.nextState()`; a scope-contract comment anchors this exception.
-10.4. Unit-test the seed handler: dispatching `{ type: '__SEED__', preset: 'evolve-near' }` into `initialState` returns a PetModel matching the preset; dispatching `{ type: '__SEED__', preset: 'unknown' }` returns input identity.
-10.5. Add a test that asserts the `useEffect` reads the URL exactly once on mount (no re-read on re-render; guards against accidental seed re-application).
+  10.3. Implement `__SEED__` as a new reducer action whose payload is the preset name. The reducer resolves the name to the preset object (exhaustive switch) and merges it into the current state. `__SEED__` is the **only** reducer action that writes `state` / `hasEvolved` directly without going through `states.nextState()`; a scope-contract comment anchors this exception.
+  10.4. Unit-test the seed handler: dispatching `{ type: '__SEED__', preset: 'evolve-near' }` into `initialState` returns a PetModel matching the preset; dispatching `{ type: '__SEED__', preset: 'unknown' }` returns input identity.
+  10.5. Add a test that asserts the `useEffect` reads the URL exactly once on mount (no re-read on re-render; guards against accidental seed re-application).
 
 ## 11. Integration test
 
