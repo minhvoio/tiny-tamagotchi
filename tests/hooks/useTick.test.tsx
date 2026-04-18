@@ -32,8 +32,16 @@ describe('useTick', () => {
     });
 
     expect(dispatch).toHaveBeenCalledTimes(3);
-    expect(dispatch).toHaveBeenNthCalledWith(1, { type: 'TICK', elapsedMs: 1000 });
-    expect(dispatch).toHaveBeenNthCalledWith(3, { type: 'TICK', elapsedMs: 1000 });
+    expect(dispatch).toHaveBeenNthCalledWith(1, {
+      type: 'TICK',
+      elapsedMs: 1000,
+      nowMs: expect.any(Number),
+    });
+    expect(dispatch).toHaveBeenNthCalledWith(3, {
+      type: 'TICK',
+      elapsedMs: 1000,
+      nowMs: expect.any(Number),
+    });
   });
 
   it('stops dispatching after the component unmounts', () => {
