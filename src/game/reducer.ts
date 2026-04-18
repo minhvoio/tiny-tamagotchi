@@ -1,19 +1,25 @@
 import {
   CARE_AMOUNTS,
   DECAY_PER_TICK,
+  EGG_MAX_STREAK_WINDOW_MS,
   EVOLVE_VITAL_THRESHOLD,
   HEAL_SAFE_BAND,
   MAX_STAT,
   MIN_STAT,
   PLAY_MIN_ENERGY,
+  QUEASY_DURATION_MS,
+  QUEASY_THRESHOLD,
   REST_RECOVERY_PER_TICK,
   SICK_NEGLECT_TICKS,
   SICK_VITAL_THRESHOLD,
+  SLEEP_CAP_DURATION_MS,
+  SLEEP_CAP_WINDOW_MINUTES,
   TICK_INTERVAL_MS,
 } from '@/game/constants';
 import {
   initialState,
   type Action,
+  type FeedStreak,
   type NeglectCounters,
   type PetModel,
   type SeedPreset,
@@ -21,6 +27,29 @@ import {
 } from '@/game/state';
 import { nextState } from '@/game/states';
 import { clamp } from '@/game/util';
+
+function hourOf(ms: number): number {
+  return new Date(ms).getHours();
+}
+
+function minuteOf(ms: number): number {
+  return new Date(ms).getMinutes();
+}
+
+function isMidnightWindow(nowMs: number): boolean {
+  return hourOf(nowMs) === 0 && minuteOf(nowMs) < SLEEP_CAP_WINDOW_MINUTES;
+}
+
+function applySleepCap(state: PetModel, nowMs: number): Partial<PetModel> {
+  return isMidnightWindow(nowMs) ? { sleepCapUntil: nowMs + SLEEP_CAP_DURATION_MS } : {};
+}
+
+function nextFeedStreak(prev: FeedStreak, nowMs: number): FeedStreak {
+  if (nowMs - prev.lastFeedAt < EGG_MAX_STREAK_WINDOW_MS) {
+    return { count: prev.count + 1, lastFeedAt: nowMs };
+  }
+  return { count: 1, lastFeedAt: nowMs };
+}
 
 // Scope contract: `state` and `hasEvolved` are written ONLY from the value
 // returned by states.nextState(). The two exceptions are the HEAL branch
@@ -79,32 +108,58 @@ export function reducer(state: PetModel, action: Action): PetModel {
   switch (action.type) {
     case 'FEED': {
       if (state.isResting) return state;
-      const next = clampVitals({
+      const nextVitals = clampVitals({
         hunger: state.vitals.hunger + CARE_AMOUNTS.feed.hunger,
         happiness: state.vitals.happiness + CARE_AMOUNTS.feed.happiness,
         energy: state.vitals.energy,
       });
-      if (vitalsEqual(next, state.vitals)) return state;
-      return { ...state, vitals: next };
+      if (vitalsEqual(nextVitals, state.vitals)) return state;
+      const streak = nextFeedStreak(state.feedStreak, action.nowMs);
+      const queasyUntil =
+        streak.count >= QUEASY_THRESHOLD ? action.nowMs + QUEASY_DURATION_MS : state.queasyUntil;
+      const sleepCap = applySleepCap(state, action.nowMs);
+      return {
+        ...state,
+        vitals: nextVitals,
+        feedStreak: streak,
+        queasyUntil,
+        ...sleepCap,
+      };
     }
     case 'PLAY': {
       if (state.isResting) return state;
       if (state.vitals.energy < PLAY_MIN_ENERGY) return state;
-      const next = clampVitals({
+      const nextVitals = clampVitals({
         hunger: state.vitals.hunger,
         happiness: state.vitals.happiness + CARE_AMOUNTS.play.happiness,
         energy: state.vitals.energy + CARE_AMOUNTS.play.energy,
       });
-      if (vitalsEqual(next, state.vitals)) return state;
-      return { ...state, vitals: next };
+      if (vitalsEqual(nextVitals, state.vitals)) return state;
+      const sleepCap = applySleepCap(state, action.nowMs);
+      const resetStreak: FeedStreak = { count: 0, lastFeedAt: state.feedStreak.lastFeedAt };
+      return {
+        ...state,
+        vitals: nextVitals,
+        feedStreak: resetStreak,
+        ...sleepCap,
+      };
     }
     case 'REST': {
-      return { ...state, isResting: !state.isResting };
+      const sleepCap = applySleepCap(state, action.nowMs);
+      const resetStreak: FeedStreak = { count: 0, lastFeedAt: state.feedStreak.lastFeedAt };
+      return {
+        ...state,
+        isResting: !state.isResting,
+        feedStreak: resetStreak,
+        ...sleepCap,
+      };
     }
     case 'HEAL': {
       // Exception to the "states.nextState is the only writer" rule: HEAL is
       // the sole recovery path out of Sick, scoped to this branch only.
       if (state.state !== 'Sick') return state;
+      const sleepCap = applySleepCap(state, action.nowMs);
+      const resetStreak: FeedStreak = { count: 0, lastFeedAt: state.feedStreak.lastFeedAt };
       const healed = clampVitals({
         hunger: Math.max(state.vitals.hunger, HEAL_SAFE_BAND),
         happiness: Math.max(state.vitals.happiness, HEAL_SAFE_BAND),
@@ -116,6 +171,8 @@ export function reducer(state: PetModel, action: Action): PetModel {
         state: state.hasEvolved ? 'Evolved' : 'Normal',
         neglectTicks: { hunger: 0, happiness: 0, energy: 0 },
         careTicks: 0,
+        feedStreak: resetStreak,
+        ...sleepCap,
       };
     }
     case 'RESET': {
