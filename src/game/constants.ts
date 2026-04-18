@@ -18,3 +18,10 @@ export const EVOLVE_CARE_TICKS = 60;
 export const HEAL_SAFE_BAND = 50;
 
 export const MAX_OFFLINE_MS = 8 * 60 * 60 * 1000;
+
+export const EGG_MAX_STREAK_WINDOW_MS = 30_000;
+export const QUEASY_DURATION_MS = 60_000;
+export const QUEASY_THRESHOLD = 10;
+export const SLEEP_CAP_WINDOW_MINUTES = 5;
+export const SLEEP_CAP_DURATION_MS = 10_000;
+export const CONFETTI_DURATION_MS = 3_000;

@@ -10,6 +10,7 @@ import { HealButton } from '@/components/HealButton';
 import { StateAnnouncer } from '@/components/StateAnnouncer';
 import { NamingForm } from '@/components/NamingForm';
 import { ResetButton } from '@/components/ResetButton';
+import { KonamiListener } from '@/components/KonamiListener';
 import { TamagotchiProvider, useTamagotchi } from '@/hooks/useTamagotchi';
 
 function VitalsPanel() {
@@ -54,6 +55,7 @@ export default function Home() {
   return (
     <TamagotchiProvider>
       <PetScreen />
+      <KonamiListener />
     </TamagotchiProvider>
   );
 }

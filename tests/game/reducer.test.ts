@@ -26,6 +26,9 @@ function make(partial: {
   neglectTicks?: Partial<NeglectCounters>;
   careTicks?: number;
   lastTickAt?: number;
+  feedStreak?: { count?: number; lastFeedAt?: number };
+  queasyUntil?: number;
+  sleepCapUntil?: number;
 }): PetModel {
   return {
     name: partial.name ?? '',
@@ -44,6 +47,12 @@ function make(partial: {
     },
     careTicks: partial.careTicks ?? 0,
     lastTickAt: partial.lastTickAt ?? 0,
+    feedStreak: {
+      count: partial.feedStreak?.count ?? 0,
+      lastFeedAt: partial.feedStreak?.lastFeedAt ?? 0,
+    },
+    queasyUntil: partial.queasyUntil ?? 0,
+    sleepCapUntil: partial.sleepCapUntil ?? 0,
   };
 }
 
@@ -64,7 +73,7 @@ describe('clamp (util)', () => {
 describe('reducer — FEED', () => {
   it('adds feed deltas (hunger +20, happiness +5) when awake and below cap', () => {
     const start = make({ hunger: 40, happiness: 40, energy: 50 });
-    const next = reducer(start, { type: 'FEED' });
+    const next = reducer(start, { type: 'FEED', nowMs: 0 });
     expect(next.vitals.hunger).toBe(40 + CARE_AMOUNTS.feed.hunger);
     expect(next.vitals.happiness).toBe(40 + CARE_AMOUNTS.feed.happiness);
     expect(next.vitals.energy).toBe(50);
@@ -72,26 +81,26 @@ describe('reducer — FEED', () => {
 
   it('clamps both affected vitals at MAX_STAT', () => {
     const start = make({ hunger: 95, happiness: 98, energy: 50 });
-    const next = reducer(start, { type: 'FEED' });
+    const next = reducer(start, { type: 'FEED', nowMs: 0 });
     expect(next.vitals.hunger).toBe(MAX_STAT);
     expect(next.vitals.happiness).toBe(MAX_STAT);
   });
 
   it('is a no-op when both hunger and happiness are already at MAX_STAT', () => {
     const start = make({ hunger: MAX_STAT, happiness: MAX_STAT, energy: 50 });
-    const next = reducer(start, { type: 'FEED' });
+    const next = reducer(start, { type: 'FEED', nowMs: 0 });
     expect(next).toBe(start);
   });
 
   it('is a no-op while isResting', () => {
     const start = make({ hunger: 40, happiness: 40, energy: 50, isResting: true });
-    const next = reducer(start, { type: 'FEED' });
+    const next = reducer(start, { type: 'FEED', nowMs: 0 });
     expect(next).toBe(start);
   });
 
   it('still feeds while Sick (Sick does not disable Feed)', () => {
     const start = make({ hunger: 40, happiness: 40, energy: 50, state: 'Sick' });
-    const next = reducer(start, { type: 'FEED' });
+    const next = reducer(start, { type: 'FEED', nowMs: 0 });
     expect(next.vitals.hunger).toBe(40 + CARE_AMOUNTS.feed.hunger);
     expect(next.state).toBe('Sick');
   });
@@ -100,7 +109,7 @@ describe('reducer — FEED', () => {
 describe('reducer — PLAY', () => {
   it('adds play deltas (happiness +20, energy -15) when awake and energy >= PLAY_MIN_ENERGY', () => {
     const start = make({ hunger: 80, happiness: 40, energy: 50 });
-    const next = reducer(start, { type: 'PLAY' });
+    const next = reducer(start, { type: 'PLAY', nowMs: 0 });
     expect(next.vitals.happiness).toBe(40 + CARE_AMOUNTS.play.happiness);
     expect(next.vitals.energy).toBe(50 + CARE_AMOUNTS.play.energy);
     expect(next.vitals.hunger).toBe(80);
@@ -108,25 +117,25 @@ describe('reducer — PLAY', () => {
 
   it('clamps happiness at MAX_STAT', () => {
     const start = make({ happiness: 90, energy: 80 });
-    const next = reducer(start, { type: 'PLAY' });
+    const next = reducer(start, { type: 'PLAY', nowMs: 0 });
     expect(next.vitals.happiness).toBe(MAX_STAT);
   });
 
   it('clamps energy at MIN_STAT rather than going negative', () => {
     const start = make({ happiness: 50, energy: PLAY_MIN_ENERGY });
-    const next = reducer(start, { type: 'PLAY' });
+    const next = reducer(start, { type: 'PLAY', nowMs: 0 });
     expect(next.vitals.energy).toBe(MIN_STAT);
   });
 
   it('is a no-op when energy < PLAY_MIN_ENERGY', () => {
     const start = make({ energy: PLAY_MIN_ENERGY - 1 });
-    const next = reducer(start, { type: 'PLAY' });
+    const next = reducer(start, { type: 'PLAY', nowMs: 0 });
     expect(next).toBe(start);
   });
 
   it('is a no-op while isResting', () => {
     const start = make({ energy: 80, isResting: true });
-    const next = reducer(start, { type: 'PLAY' });
+    const next = reducer(start, { type: 'PLAY', nowMs: 0 });
     expect(next).toBe(start);
   });
 });
@@ -134,14 +143,14 @@ describe('reducer — PLAY', () => {
 describe('reducer — REST', () => {
   it('sets isResting to true from false, leaving vitals untouched', () => {
     const start = make({ hunger: 50, happiness: 50, energy: 50 });
-    const next = reducer(start, { type: 'REST' });
+    const next = reducer(start, { type: 'REST', nowMs: 0 });
     expect(next.isResting).toBe(true);
     expect(next.vitals).toEqual(start.vitals);
   });
 
   it('toggles isResting back to false (acts as Wake), leaving vitals untouched', () => {
     const start = make({ hunger: 50, happiness: 50, energy: 50, isResting: true });
-    const next = reducer(start, { type: 'REST' });
+    const next = reducer(start, { type: 'REST', nowMs: 0 });
     expect(next.isResting).toBe(false);
     expect(next.vitals).toEqual(start.vitals);
   });
@@ -150,7 +159,7 @@ describe('reducer — REST', () => {
 describe('reducer — HEAL', () => {
   it('is identity from Normal (unchanged state, object referential equality)', () => {
     const start = make({ hunger: 30, happiness: 30, energy: 30, state: 'Normal' });
-    const next = reducer(start, { type: 'HEAL' });
+    const next = reducer(start, { type: 'HEAL', nowMs: 0 });
     expect(next).toBe(start);
   });
 
@@ -162,7 +171,7 @@ describe('reducer — HEAL', () => {
       state: 'Evolved',
       hasEvolved: true,
     });
-    const next = reducer(start, { type: 'HEAL' });
+    const next = reducer(start, { type: 'HEAL', nowMs: 0 });
     expect(next).toBe(start);
   });
 
@@ -173,7 +182,7 @@ describe('reducer — HEAL', () => {
       energy: 20,
       state: 'Sick',
     });
-    const next = reducer(start, { type: 'HEAL' });
+    const next = reducer(start, { type: 'HEAL', nowMs: 0 });
     expect(next.vitals.hunger).toBe(HEAL_SAFE_BAND);
     expect(next.vitals.happiness).toBe(70);
     expect(next.vitals.energy).toBe(HEAL_SAFE_BAND);
@@ -189,7 +198,7 @@ describe('reducer — HEAL', () => {
       neglectTicks: { hunger: 10, happiness: 4, energy: 2 },
       careTicks: 0,
     });
-    const next = reducer(start, { type: 'HEAL' });
+    const next = reducer(start, { type: 'HEAL', nowMs: 0 });
     expect(next.state).toBe('Normal');
     expect(next.hasEvolved).toBe(false);
     expect(next.neglectTicks).toEqual({ hunger: 0, happiness: 0, energy: 0 });
@@ -205,7 +214,7 @@ describe('reducer — HEAL', () => {
       hasEvolved: true,
       neglectTicks: { hunger: 10, happiness: 0, energy: 0 },
     });
-    const next = reducer(start, { type: 'HEAL' });
+    const next = reducer(start, { type: 'HEAL', nowMs: 0 });
     expect(next.state).toBe('Evolved');
     expect(next.hasEvolved).toBe(true);
   });
@@ -443,12 +452,12 @@ describe('reducer — forbidden transitions', () => {
 
   it('HEAL outside Sick never changes state or hasEvolved', () => {
     const fromNormal = make({ hunger: 5, state: 'Normal', hasEvolved: false });
-    const afterNormal = reducer(fromNormal, { type: 'HEAL' });
+    const afterNormal = reducer(fromNormal, { type: 'HEAL', nowMs: 0 });
     expect(afterNormal.state).toBe('Normal');
     expect(afterNormal.hasEvolved).toBe(false);
 
     const fromEvolved = make({ hunger: 5, state: 'Evolved', hasEvolved: true });
-    const afterEvolved = reducer(fromEvolved, { type: 'HEAL' });
+    const afterEvolved = reducer(fromEvolved, { type: 'HEAL', nowMs: 0 });
     expect(afterEvolved.state).toBe('Evolved');
     expect(afterEvolved.hasEvolved).toBe(true);
   });
@@ -458,16 +467,16 @@ describe('reducer — forbidden transitions', () => {
     let s = initialState;
     const actions: Array<
       () =>
-        | { type: 'FEED' }
-        | { type: 'PLAY' }
-        | { type: 'REST' }
-        | { type: 'HEAL' }
+        | { type: 'FEED'; nowMs: number }
+        | { type: 'PLAY'; nowMs: number }
+        | { type: 'REST'; nowMs: number }
+        | { type: 'HEAL'; nowMs: number }
         | { type: 'TICK'; elapsedMs: number; nowMs: number }
     > = [
-      () => ({ type: 'FEED' }) as const,
-      () => ({ type: 'PLAY' }) as const,
-      () => ({ type: 'REST' }) as const,
-      () => ({ type: 'HEAL' }) as const,
+      () => ({ type: 'FEED', nowMs: 0 }) as const,
+      () => ({ type: 'PLAY', nowMs: 0 }) as const,
+      () => ({ type: 'REST', nowMs: 0 }) as const,
+      () => ({ type: 'HEAL', nowMs: 0 }) as const,
       () => ({ type: 'TICK', elapsedMs: TICK_INTERVAL_MS, nowMs: 0 }) as const,
     ];
     for (let i = 0; i < 200; i++) {
@@ -579,6 +588,105 @@ describe('reducer — RESET / SET_NAME / __HYDRATE__ / TICK.lastTickAt', () => {
     };
     const next = reducer(initialState, { type: '__HYDRATE__', state: stored });
     expect(next).toBe(stored);
+  });
+});
+
+describe('reducer — Phase 6 easter eggs (animation-only)', () => {
+  const HAPPY_NOON = new Date('2026-04-18T12:00:00').getTime();
+  const MIDNIGHT_0202 = new Date('2026-04-18T00:02:00').getTime();
+  const MIDNIGHT_0500 = new Date('2026-04-18T00:05:00').getTime();
+  const ONE_AM = new Date('2026-04-18T01:00:00').getTime();
+
+  it('9 consecutive FEEDs within the window leave queasyUntil at 0', () => {
+    let s = make({ hunger: 10, happiness: 10, energy: 10 });
+    for (let i = 0; i < 9; i++) {
+      s = reducer(s, { type: 'FEED', nowMs: HAPPY_NOON + i * 1000 });
+    }
+    expect(s.feedStreak.count).toBe(9);
+    expect(s.queasyUntil).toBe(0);
+  });
+
+  it('the 10th consecutive FEED within the window sets queasyUntil = nowMs + QUEASY_DURATION_MS', () => {
+    let s = make({ hunger: 10, happiness: 10, energy: 10 });
+    let lastNow = HAPPY_NOON;
+    for (let i = 0; i < 10; i++) {
+      lastNow = HAPPY_NOON + i * 1000;
+      s = reducer(s, { type: 'FEED', nowMs: lastNow });
+    }
+    expect(s.feedStreak.count).toBe(10);
+    expect(s.queasyUntil).toBe(lastNow + 60_000);
+  });
+
+  it('FEED with a gap larger than the streak window resets count to 1', () => {
+    let s = make({ hunger: 10, happiness: 10, energy: 10 });
+    s = reducer(s, { type: 'FEED', nowMs: HAPPY_NOON });
+    s = reducer(s, { type: 'FEED', nowMs: HAPPY_NOON + 100_000 });
+    expect(s.feedStreak.count).toBe(1);
+  });
+
+  it('PLAY resets feedStreak.count to 0', () => {
+    let s = make({ hunger: 10, happiness: 10, energy: 50 });
+    s = reducer(s, { type: 'FEED', nowMs: HAPPY_NOON });
+    s = reducer(s, { type: 'PLAY', nowMs: HAPPY_NOON + 1000 });
+    expect(s.feedStreak.count).toBe(0);
+  });
+
+  it('REST resets feedStreak.count to 0', () => {
+    let s = make({ hunger: 10, happiness: 10, energy: 50 });
+    s = reducer(s, { type: 'FEED', nowMs: HAPPY_NOON });
+    s = reducer(s, { type: 'REST', nowMs: HAPPY_NOON + 1000 });
+    expect(s.feedStreak.count).toBe(0);
+  });
+
+  it('HEAL resets feedStreak.count to 0 (only when Sick)', () => {
+    let s = make({ hunger: 10, happiness: 10, energy: 10, state: 'Sick' });
+    s = reducer(s, { type: 'FEED', nowMs: HAPPY_NOON });
+    expect(s.feedStreak.count).toBe(1);
+    s = reducer(s, { type: 'HEAL', nowMs: HAPPY_NOON + 1000 });
+    expect(s.feedStreak.count).toBe(0);
+  });
+
+  it('Stat-unchanged invariant: 10 FEEDs at noon leave vitals at exactly 10 Phase-3 FEED results', () => {
+    let s = make({ hunger: 0, happiness: 0, energy: 50 });
+    for (let i = 0; i < 10; i++) {
+      s = reducer(s, { type: 'FEED', nowMs: HAPPY_NOON + i * 1000 });
+    }
+    expect(s.vitals.hunger).toBe(100);
+    expect(s.vitals.happiness).toBe(50);
+    expect(s.vitals.energy).toBe(50);
+    expect(s.state).toBe('Normal');
+    expect(s.hasEvolved).toBe(false);
+    expect(s.queasyUntil).toBeGreaterThan(0);
+  });
+
+  it('FEED at 00:02 local sets sleepCapUntil = nowMs + SLEEP_CAP_DURATION_MS', () => {
+    const s = reducer(make({ hunger: 50 }), { type: 'FEED', nowMs: MIDNIGHT_0202 });
+    expect(s.sleepCapUntil).toBe(MIDNIGHT_0202 + 10_000);
+  });
+
+  it('FEED at 00:05 local does NOT set sleepCapUntil (boundary exclusive)', () => {
+    const s = reducer(make({ hunger: 50 }), { type: 'FEED', nowMs: MIDNIGHT_0500 });
+    expect(s.sleepCapUntil).toBe(0);
+  });
+
+  it('PLAY at 00:02 local sets sleepCapUntil', () => {
+    const s = reducer(make({ energy: 50, happiness: 50 }), { type: 'PLAY', nowMs: MIDNIGHT_0202 });
+    expect(s.sleepCapUntil).toBe(MIDNIGHT_0202 + 10_000);
+  });
+
+  it('REST at 00:02 local sets sleepCapUntil', () => {
+    const s = reducer(make({}), { type: 'REST', nowMs: MIDNIGHT_0202 });
+    expect(s.sleepCapUntil).toBe(MIDNIGHT_0202 + 10_000);
+  });
+
+  it('HEAL at 00:02 local while Sick sets sleepCapUntil', () => {
+    const s = reducer(make({ hunger: 10, state: 'Sick' }), { type: 'HEAL', nowMs: MIDNIGHT_0202 });
+    expect(s.sleepCapUntil).toBe(MIDNIGHT_0202 + 10_000);
+  });
+
+  it('Actions at 01:00 local do NOT set sleepCapUntil', () => {
+    const s = reducer(make({ hunger: 50 }), { type: 'FEED', nowMs: ONE_AM });
+    expect(s.sleepCapUntil).toBe(0);
   });
 });
 

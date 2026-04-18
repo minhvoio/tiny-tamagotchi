@@ -40,6 +40,9 @@ describe('state-machine integration', () => {
         neglectTicks: { hunger: 0, happiness: 0, energy: 0 },
         careTicks: 0,
         lastTickAt: Date.now(),
+        feedStreak: { count: 0, lastFeedAt: 0 },
+        queasyUntil: 0,
+        sleepCapUntil: 0,
       }),
     );
   });
