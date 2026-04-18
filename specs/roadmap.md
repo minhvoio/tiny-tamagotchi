@@ -3,17 +3,20 @@
 Work is organized as **vertical slices**: each phase ends with a pet the player can see, interact with, and demo. Phases are intentionally small so progress is continuous and reversible.
 
 Each phase lists:
+
 - **Goal** — the one sentence summary
 - **Deliverables** — concrete, checkable outputs
-- **Demo** — what the player can *do* at the end
+- **Demo** — what the player can _do_ at the end
 - **Out of Scope** — explicitly deferred
 
 ---
 
 ## Phase 0 — Project Skeleton
+
 **Goal:** A Next.js app boots and renders "Hello, pet" on localhost.
 
 **Deliverables**
+
 - `tiny-tamagotchi/` Next.js + TypeScript + Tailwind initialized via `pnpm create next-app`.
 - ESLint + Prettier + Vitest configured.
 - Folder structure from `tech-stack.md` scaffolded (empty files allowed).
@@ -26,9 +29,11 @@ Each phase lists:
 ---
 
 ## Phase 1 — A Pet on Screen
+
 **Goal:** A visible, idle pet that blinks or bobs. No stats, no interaction.
 
 **Deliverables**
+
 - `<Pet />` component rendering a placeholder sprite (inline SVG or a simple pixel-art PNG).
 - A single idle CSS animation (blink or gentle bob).
 - Page layout: centered stage with pet + app title.
@@ -41,9 +46,11 @@ Each phase lists:
 ---
 
 ## Phase 2 — One Living Vital (Hunger)
+
 **Goal:** Hunger decays over real time on a 0–100 scale; the player can Feed to replenish it.
 
 **Deliverables**
+
 - Game state module (`src/game/state.ts`) with `{ hunger: number /* 0–100 */ }` and action types.
 - Reducer handling `FEED` and `TICK` actions; all mutations clamp to `[0, 100]`.
 - `useTick` hook driving decay on a `setInterval` (e.g., -1 hunger every N seconds).
@@ -51,16 +58,18 @@ Each phase lists:
 - `<FeedButton />` dispatches `FEED`.
 - Vitest tests: feed clamps at 100, tick decays, stat never goes below 0 or above 100.
 
-**Demo:** Hunger bar ticks down from 100; pressing **Feed** refills it. The pet is finally *alive*.
+**Demo:** Hunger bar ticks down from 100; pressing **Feed** refills it. The pet is finally _alive_.
 
 **Out of Scope:** Other stats, sickness, persistence.
 
 ---
 
 ## Phase 3 — Full Care Loop (Three Vitals + Three Actions)
+
 **Goal:** Hunger, Happiness, Energy all tick on 0–100; Feed, Play, Rest all work with interdependencies.
 
 **Deliverables**
+
 - Extend state to `{ hunger: number, happiness: number, energy: number }` — all clamped to `[0, 100]`.
 - Actions: `FEED` (↑hunger, small ↑happiness), `PLAY` (↑happiness, ↓energy), `REST` (↑energy over time, pet unavailable while resting).
 - Resting mechanic: an `isResting` flag disables other actions and boosts energy each tick until full.
@@ -74,9 +83,11 @@ Each phase lists:
 ---
 
 ## Phase 4 — Dynamic States (Normal / Sick / Evolved) + Heal
+
 **Goal:** The pet visibly changes based on care history, with exactly three states and one recovery path.
 
 **Deliverables**
+
 - State machine module (`src/game/states.ts`) with exactly three states: `Normal | Sick | Evolved`.
 - Transitions (the **only** transitions allowed):
   - `Normal → Sick` when any vital stays at/near 0 for a sustained period.
@@ -95,9 +106,11 @@ Each phase lists:
 ---
 
 ## Phase 5 — Persistence, Naming & Real-Time Aging
+
 **Goal:** The pet survives page reloads, has a player-chosen name, and ages while the tab is closed. No permadeath.
 
 **Deliverables**
+
 - `localStorage` adapter with a versioned schema (`{ version, name, vitals, state, lastTickAt }`).
 - `lastTickAt` timestamp persisted; on load, compute elapsed ticks and catch up (with a cap, e.g., max 8 hours of offline decay). Offline catch-up can drive the pet to Sick but **never ends the pet**.
 - Name-the-pet flow on first load; name stored and displayed. Exactly one pet per browser.
@@ -111,9 +124,11 @@ Each phase lists:
 ---
 
 ## Phase 6 — Personal Touches & Easter Eggs
+
 **Goal:** The pet has personality — expressed purely through animations and reactions, never gameplay.
 
 **Deliverables**
+
 - Idle mini-animations (yawn, blink, look around) that fire probabilistically.
 - Reaction animations to each action (happy hop on play, chomp on feed, Zz on rest, sparkle on Heal).
 - At least 3 Easter eggs, all **animation-only** (no mini-games, no new mechanics, no rewards that alter stats):
@@ -129,9 +144,11 @@ Each phase lists:
 ---
 
 ## Phase 7 — Polish & Ship
+
 **Goal:** The app is production-ready and deployed.
 
 **Deliverables**
+
 - Accessibility pass: keyboard controls, `aria-live` for state changes, focus-visible styles, prefers-reduced-motion support.
 - Responsive layout (mobile-friendly).
 - Optional Web Audio beeps (mute toggle, off by default).
@@ -146,6 +163,7 @@ Each phase lists:
 ---
 
 ## Guiding Principles for Every Phase
+
 1. **Ship a playable pet.** No phase ends with broken mechanics.
 2. **Pure logic first, UI second.** Write the reducer + tests before wiring React.
 3. **Keep it tiny.** Prefer deleting code over adding config.

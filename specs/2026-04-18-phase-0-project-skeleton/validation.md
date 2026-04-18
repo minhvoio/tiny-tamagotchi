@@ -4,14 +4,14 @@
 
 Run from `tiny-tamagotchi/`. Every command must exit with code 0.
 
-| Command | Must produce |
-|---|---|
-| `pnpm install` | Clean install; `pnpm-lock.yaml` present and committed. |
-| `pnpm lint` | Zero ESLint errors, zero warnings. |
-| `pnpm typecheck` | `tsc --noEmit` passes with `strict: true`. |
-| `pnpm format:check` | Prettier reports all files formatted. |
-| `pnpm test` | Smoke test `tests/smoke.test.ts` passes; exactly one test file runs; zero failures, zero skipped. |
-| `pnpm build` | Next.js production build succeeds; `.next/` is produced. |
+| Command             | Must produce                                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------------- |
+| `pnpm install`      | Clean install; `pnpm-lock.yaml` present and committed.                                            |
+| `pnpm lint`         | Zero ESLint errors, zero warnings.                                                                |
+| `pnpm typecheck`    | `tsc --noEmit` passes with `strict: true`.                                                        |
+| `pnpm format:check` | Prettier reports all files formatted.                                                             |
+| `pnpm test`         | Smoke test `tests/smoke.test.ts` passes; exactly one test file runs; zero failures, zero skipped. |
+| `pnpm build`        | Next.js production build succeeds; `.next/` is produced.                                          |
 
 ### Specific assertions
 
@@ -26,6 +26,7 @@ Run from `tiny-tamagotchi/`. Every command must exit with code 0.
 ## Manual
 
 ### Walkthrough
+
 1. Clone the repo fresh (or delete `node_modules/` and `.next/`).
 2. From `tiny-tamagotchi/`, run `pnpm install`.
 3. Run `pnpm dev`; open `http://localhost:3000`.
@@ -34,17 +35,20 @@ Run from `tiny-tamagotchi/`. Every command must exit with code 0.
 6. Stop the dev server. Run `pnpm build && pnpm start`; verify the production build serves the same page.
 
 ### Behavior
+
 - The page loads without console errors or warnings (React, Next.js, or Tailwind).
 - No network requests beyond the Next.js runtime bundle and Tailwind styles.
 - Resizing the window keeps the title centered (basic Tailwind flex behavior).
 
 ### Edge cases
+
 - `pnpm test` when run from a cold cache still passes.
 - Deleting `node_modules/` and re-running `pnpm install && pnpm test && pnpm build` reproduces the green bar.
 
 ## Tone check
 
 The only user-facing copy is the app title: **"Tiny Tamagotchi"**. Verify:
+
 - Exact spelling, capital T-T.
 - No subtitle, tagline, or filler text.
 - No emoji, exclamation marks, or marketing voice.
@@ -52,6 +56,7 @@ The only user-facing copy is the app title: **"Tiny Tamagotchi"**. Verify:
 ## Scope Contract check
 
 Confirm Phase 0 introduced **nothing** on the 🚫 list from `mission.md`:
+
 - No auth, users, or accounts.
 - No multiple-pet structures, inventories, currencies.
 - No notification APIs, mini-games, social/sharing.

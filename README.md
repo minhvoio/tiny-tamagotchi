@@ -55,16 +55,16 @@ pnpm format        # Prettier write
 
 Currently in **Phase 0 — Project Skeleton**. See [`specs/roadmap.md`](./specs/roadmap.md) for the full phase plan:
 
-| Phase | Goal |
-|---|---|
-| 0 | Project skeleton: Next.js + TS + Tailwind + Vitest |
-| 1 | Static pet on screen with idle animation |
-| 2 | Hunger vital: tick + feed + tests |
-| 3 | Full care loop: 3 vitals + 3 actions |
-| 4 | Dynamic states (Normal / Sick / Evolved) + Heal |
-| 5 | Persistence, naming, offline aging |
-| 6 | Personality & easter eggs |
-| 7 | Polish, accessibility, deploy |
+| Phase | Goal                                               |
+| ----- | -------------------------------------------------- |
+| 0     | Project skeleton: Next.js + TS + Tailwind + Vitest |
+| 1     | Static pet on screen with idle animation           |
+| 2     | Hunger vital: tick + feed + tests                  |
+| 3     | Full care loop: 3 vitals + 3 actions               |
+| 4     | Dynamic states (Normal / Sick / Evolved) + Heal    |
+| 5     | Persistence, naming, offline aging                 |
+| 6     | Personality & easter eggs                          |
+| 7     | Polish, accessibility, deploy                      |
 
 ## Layout
 
