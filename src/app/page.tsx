@@ -6,6 +6,8 @@ import { StatBar } from '@/components/StatBar';
 import { FeedButton } from '@/components/FeedButton';
 import { PlayButton } from '@/components/PlayButton';
 import { RestButton } from '@/components/RestButton';
+import { HealButton } from '@/components/HealButton';
+import { StateAnnouncer } from '@/components/StateAnnouncer';
 import { TamagotchiProvider, useTamagotchi } from '@/hooks/useTamagotchi';
 
 function VitalsPanel() {
@@ -32,7 +34,9 @@ export default function Home() {
           <FeedButton />
           <PlayButton />
           <RestButton />
+          <HealButton />
         </div>
+        <StateAnnouncer />
       </main>
     </TamagotchiProvider>
   );
