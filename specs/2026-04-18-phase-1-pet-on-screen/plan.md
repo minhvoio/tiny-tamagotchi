@@ -48,6 +48,9 @@ Each group is independently implementable. Complete them in order; the validatio
 
 - Render `<Pet />`.
 - Assert `screen.getByRole('img', { name: /tiny tamagotchi, idling/i })` is in the document.
+- Assert the root element carries the `pet` CSS Module class (match as regex to tolerate CSS Modules hashing):
+  `expect(screen.getByRole('img')).toHaveClass(/pet/);`
+  This pins the component to `pet.module.css` so the animation cannot silently detach.
   4.2. Create `tests/components/PetStage.test.tsx`:
 - Render `<PetStage><span data-testid="child">x</span></PetStage>`.
 - Assert the child is in the document (`getByTestId('child')`).

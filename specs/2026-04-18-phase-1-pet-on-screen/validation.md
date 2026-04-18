@@ -15,6 +15,7 @@ Run from `tiny-tamagotchi/`. Every command must exit with code 0.
 ### Specific assertions
 
 - `src/components/Pet.tsx` exports a default or named `Pet` component that accepts no props and renders an `<svg>` with `role="img"` and `aria-label="Tiny tamagotchi, idling"`.
+- `<Pet />`'s root SVG carries the `pet` class from `src/styles/pet.module.css` (regex-matched as `/pet/` to tolerate CSS Modules hashing). This binds the component to its animation source; without it, the bob animation could silently detach.
 - `src/components/PetStage.tsx` exports a component accepting only `children` and rendering them inside a single wrapping `div`.
 - `src/styles/pet.module.css` contains exactly one `@keyframes bob` rule and one `@media (prefers-reduced-motion: reduce)` block disabling the animation.
 - `src/app/page.tsx` imports `Pet` and `PetStage` from `@/components/*` and renders them inside `<main>` beneath the existing `<h1>`.
