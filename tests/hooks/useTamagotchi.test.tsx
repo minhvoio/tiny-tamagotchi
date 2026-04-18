@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { TamagotchiProvider, useTamagotchi } from '@/hooks/useTamagotchi';
-import { CARE_AMOUNTS, MAX_STAT, TICK_INTERVAL_MS } from '@/game/constants';
+import { CARE_AMOUNTS, MAX_STAT, SICK_NEGLECT_TICKS, TICK_INTERVAL_MS } from '@/game/constants';
 
 function StateReader() {
   const { state, dispatch } = useTamagotchi();
@@ -11,8 +11,12 @@ function StateReader() {
       <span data-testid="happiness">{state.vitals.happiness}</span>
       <span data-testid="energy">{state.vitals.energy}</span>
       <span data-testid="resting">{String(state.isResting)}</span>
+      <span data-testid="pet-state">{state.state}</span>
       <button type="button" onClick={() => dispatch({ type: 'FEED' })}>
         feed-from-test
+      </button>
+      <button type="button" onClick={() => dispatch({ type: '__SEED__', preset: 'sick-near' })}>
+        seed-sick-near
       </button>
     </div>
   );
@@ -64,5 +68,51 @@ describe('<TamagotchiProvider /> + useTamagotchi', () => {
       /useTamagotchi must be used inside <TamagotchiProvider>/,
     );
     consoleErr.mockRestore();
+  });
+
+  it('propagates state.state = Sick to consumers after sustained low hunger', () => {
+    render(
+      <TamagotchiProvider>
+        <StateReader />
+      </TamagotchiProvider>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'seed-sick-near' }));
+    expect(screen.getByTestId('pet-state').textContent).toBe('Normal');
+    act(() => {
+      vi.advanceTimersByTime(TICK_INTERVAL_MS * (SICK_NEGLECT_TICKS + 1));
+    });
+    expect(screen.getByTestId('pet-state').textContent).toBe('Sick');
+  });
+
+  it('reads ?__seed= on mount and ignores unknown preset names', () => {
+    window.history.replaceState({}, '', 'http://localhost/?__seed=nope');
+    render(
+      <TamagotchiProvider>
+        <StateReader />
+      </TamagotchiProvider>,
+    );
+    expect(screen.getByTestId('pet-state').textContent).toBe('Normal');
+    window.history.replaceState({}, '', 'http://localhost/');
+  });
+
+  it('applies ?__seed=sick-near on mount exactly once', () => {
+    window.history.replaceState({}, '', 'http://localhost/?__seed=sick-near');
+    const { rerender } = render(
+      <TamagotchiProvider>
+        <StateReader />
+      </TamagotchiProvider>,
+    );
+    expect(Number(screen.getByTestId('hunger').textContent)).toBe(5);
+    rerender(
+      <TamagotchiProvider>
+        <StateReader />
+      </TamagotchiProvider>,
+    );
+    // Re-render must not re-apply the seed (would reset hunger back to 5 if decayed).
+    act(() => {
+      vi.advanceTimersByTime(TICK_INTERVAL_MS * 2);
+    });
+    expect(Number(screen.getByTestId('hunger').textContent)).toBe(3);
+    window.history.replaceState({}, '', 'http://localhost/');
   });
 });
