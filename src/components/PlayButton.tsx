@@ -5,7 +5,7 @@ import { PLAY_MIN_ENERGY } from '@/game/constants';
 import { useTamagotchi } from '@/hooks/useTamagotchi';
 
 export function PlayButton() {
-  const { state, dispatch } = useTamagotchi();
+  const { state, dispatchWithNow } = useTamagotchi();
   const resting = state.isResting;
   const tooTired = state.vitals.energy < PLAY_MIN_ENERGY;
   const disabled = resting || tooTired;
@@ -14,7 +14,7 @@ export function PlayButton() {
   return (
     <ActionButton
       label="Play"
-      onPress={() => dispatch({ type: 'PLAY' })}
+      onPress={() => dispatchWithNow({ type: 'PLAY' })}
       disabled={disabled}
       disabledReason={disabledReason}
     />

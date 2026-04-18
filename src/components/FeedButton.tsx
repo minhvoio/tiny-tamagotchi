@@ -5,7 +5,7 @@ import { MAX_STAT } from '@/game/constants';
 import { useTamagotchi } from '@/hooks/useTamagotchi';
 
 export function FeedButton() {
-  const { state, dispatch } = useTamagotchi();
+  const { state, dispatchWithNow } = useTamagotchi();
   const resting = state.isResting;
   const full = state.vitals.hunger >= MAX_STAT;
   const disabled = resting || full;
@@ -14,7 +14,7 @@ export function FeedButton() {
   return (
     <ActionButton
       label="Feed"
-      onPress={() => dispatch({ type: 'FEED' })}
+      onPress={() => dispatchWithNow({ type: 'FEED' })}
       disabled={disabled}
       disabledReason={disabledReason}
     />

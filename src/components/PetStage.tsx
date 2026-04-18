@@ -1,11 +1,23 @@
+'use client';
+
 import type { ReactNode } from 'react';
+import { useTamagotchi } from '@/hooks/useTamagotchi';
 import styles from '@/styles/pet.module.css';
 
 interface PetStageProps {
   children: ReactNode;
 }
 
-/** Mount point for the pet and future stat overlays. */
 export function PetStage({ children }: PetStageProps) {
-  return <div className={styles.stage}>{children}</div>;
+  const { state } = useTamagotchi();
+  return (
+    <div className={styles.stage}>
+      {state.state === 'Sick' && (
+        <span data-testid="sick-indicator" aria-hidden="true" className={styles.sickIndicator}>
+          •••
+        </span>
+      )}
+      {children}
+    </div>
+  );
 }

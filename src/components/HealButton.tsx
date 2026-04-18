@@ -3,9 +3,8 @@
 import { ActionButton } from '@/components/ActionButton';
 import { useTamagotchi } from '@/hooks/useTamagotchi';
 
-export function RestButton() {
+export function HealButton() {
   const { state, dispatchWithNow } = useTamagotchi();
-  const label = state.isResting ? 'Wake' : 'Rest';
-
-  return <ActionButton label={label} onPress={() => dispatchWithNow({ type: 'REST' })} />;
+  if (state.state !== 'Sick') return null;
+  return <ActionButton label="Heal" onPress={() => dispatchWithNow({ type: 'HEAL' })} />;
 }

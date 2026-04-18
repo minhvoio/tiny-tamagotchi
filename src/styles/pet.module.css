@@ -1,13 +1,9 @@
-/*
- * Phase 1 palette tokens — kept local so Phase 4 can swap them for a Sick/Evolved look.
- *   --pet-body:  muted pastel used for the creature's body
- *   --pet-floor: slightly darker pastel used for the stage floor strip
- */
-
 .pet {
   --pet-body: #f6c6a4;
   --pet-eye: #2a2233;
   --pet-mouth: #2a2233;
+  --pet-crown: transparent;
+  --pet-tint: transparent;
 
   image-rendering: pixelated;
   animation: bob 2s ease-in-out infinite;
@@ -15,6 +11,197 @@
   width: 160px;
   height: 160px;
   color: var(--pet-body);
+}
+
+.petVariant0 {
+  --pet-tint: #ffd6e0;
+}
+
+.petVariant1 {
+  --pet-tint: #d6f0ff;
+}
+
+.petVariant2 {
+  --pet-tint: #d6ffd6;
+}
+
+.pet[data-reaction='chomp'] {
+  animation: chomp 0.6s ease-out forwards;
+}
+
+.pet[data-reaction='hop'] {
+  animation: hop 0.6s ease-out forwards;
+}
+
+.pet[data-reaction='sparkle'] {
+  animation: sparkle 1.2s ease-out forwards;
+}
+
+.pet[data-idle-animation='yawn'] {
+  animation: yawn 2s ease-in-out;
+}
+
+.pet[data-idle-animation='blink'] {
+  animation: blink 2s ease-in-out;
+}
+
+.pet[data-idle-animation='look-around'] {
+  animation: lookAround 2s ease-in-out;
+}
+
+.pet[data-egg='queasy'] {
+  animation: queasy 1s ease-in-out infinite;
+}
+
+.zzOverlay {
+  font-family: system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #6b8bff;
+  letter-spacing: 0.05em;
+  animation: fadeZz 2s ease-in-out infinite;
+}
+
+.confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 30%, #ff6b9e 4px, transparent 5px),
+    radial-gradient(circle at 70% 40%, #6bcfff 4px, transparent 5px),
+    radial-gradient(circle at 45% 70%, #ffd166 4px, transparent 5px),
+    radial-gradient(circle at 85% 75%, #9b5de5 4px, transparent 5px);
+  animation: confettiFall 3s ease-out forwards;
+}
+
+@keyframes chomp {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  40% {
+    transform: scaleY(0.88) translateY(2px);
+  }
+  60% {
+    transform: scaleY(1.04);
+  }
+}
+
+@keyframes hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  70% {
+    transform: translateY(2px);
+  }
+}
+
+@keyframes sparkle {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.08);
+    filter: brightness(1.3);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes yawn {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  40% {
+    transform: scaleY(1.08);
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  45%,
+  55% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes lookAround {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
+}
+
+@keyframes queasy {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  25% {
+    transform: translateX(-2px) rotate(-1deg);
+  }
+  75% {
+    transform: translateX(2px) rotate(1deg);
+  }
+}
+
+@keyframes fadeZz {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-100%);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+}
+
+.pet[data-state='Normal'] {
+  --pet-body: #f6c6a4;
+  --pet-eye: #2a2233;
+  --pet-mouth: #2a2233;
+  --pet-crown: transparent;
+}
+
+.pet[data-state='Sick'] {
+  --pet-body: #9fb89a;
+  --pet-eye: #3a4a3a;
+  --pet-mouth: #3a4a3a;
+  --pet-crown: transparent;
+}
+
+.pet[data-state='Evolved'] {
+  --pet-body: #f5c66b;
+  --pet-eye: #2a2233;
+  --pet-mouth: #2a2233;
+  --pet-crown: #fbbf24;
 }
 
 .stage {
@@ -39,6 +226,14 @@
   opacity: 0.7;
 }
 
+.sickIndicator {
+  font-size: 1.25rem;
+  letter-spacing: 0.1em;
+  color: #6b8a6e;
+  animation: bob 1s ease-in-out infinite;
+  margin-bottom: 0.25rem;
+}
+
 @keyframes bob {
   0% {
     transform: translateY(0);
@@ -53,6 +248,30 @@
 
 @media (prefers-reduced-motion: reduce) {
   .pet {
+    animation: none;
+  }
+
+  .sickIndicator {
+    animation: none;
+  }
+
+  .pet[data-reaction] {
+    animation-duration: 0s;
+  }
+
+  .pet[data-idle-animation] {
+    animation-duration: 0s;
+  }
+
+  .pet[data-egg='queasy'] {
+    animation: none;
+  }
+
+  .confetti {
+    animation: none;
+  }
+
+  .zzOverlay {
     animation: none;
   }
 }
