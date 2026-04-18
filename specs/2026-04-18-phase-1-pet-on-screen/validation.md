@@ -54,6 +54,23 @@ Run from `tiny-tamagotchi/`. Every command must exit with code 0.
 - Fresh install (`rm -rf node_modules .next && pnpm install && pnpm build`) reproduces the green bar.
 - Viewing `/` in Safari and Firefox shows the same layout and animation as Chrome.
 
+### Browser verification (webapp-testing skill)
+
+Run **after** the automated tests pass and **before** merging. `tsc --noEmit` and Vitest prove types + component rendering in jsdom, but they don't exercise the actual browser rendering path (real CSS, real compositor, real prefers-reduced-motion). The `webapp-testing` skill closes that gap.
+
+Load the skill and run `scripts/with_server.py` with `pnpm dev` on port 3000, then execute a Playwright script that performs:
+
+1. **Baseline capture**: navigate to `http://localhost:3000`, `wait_for_load_state('networkidle')`, screenshot to `/tmp/phase-1-after.png`.
+2. **DOM assertions** (reconnaissance-then-action pattern):
+   - `page.get_by_role('img', name=re.compile(r'tiny tamagotchi, idling', re.I))` resolves to exactly one element.
+   - The resolved element's `class` attribute contains a token matching `/pet/` (CSS Module hash-tolerant).
+   - `page.get_by_role('heading', level=1)` has text `"Tiny Tamagotchi"`.
+3. **Animation evidence**: capture two screenshots 1s apart of the `<Pet />` bounding box; assert the image hashes differ (bob animation is running).
+4. **Reduced-motion regression**: re-launch a new context with `reduced_motion='reduce'`, take two screenshots 1s apart of the same bounding box; assert the image hashes are identical (animation paused).
+5. **Console audit**: collect `page.on('console', ...)` and `page.on('pageerror', ...)`; assert zero errors and zero warnings during the run.
+
+A passing run of this script is the gate for merging Phase 1. Store the baseline screenshot alongside the PR so later phases have a visual reference.
+
 ## Tone check
 
 The only copy introduced in Phase 1 is the `aria-label` value: **"Tiny tamagotchi, idling"**. Verify:
@@ -85,6 +102,7 @@ Phase 1 is complete when **all** of the following are true:
 - [ ] The **Manual walkthrough** matches exactly, including reduced-motion behavior.
 - [ ] **Tone check** passes.
 - [ ] **Scope Contract check** passes.
+- [ ] **Browser verification via `webapp-testing` skill** ran clean: DOM assertions, animation evidence, reduced-motion regression, and zero console errors/warnings.
 - [ ] `CHANGELOG.md` has new bullets under today's date summarizing Phase 1 deliverables.
 - [ ] No TODO/FIXME comments left in the diff.
 - [ ] `specs/roadmap.md` Phase 1 deliverables can honestly be ticked.
