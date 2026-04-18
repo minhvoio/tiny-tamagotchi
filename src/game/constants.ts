@@ -16,3 +16,5 @@ export const SICK_NEGLECT_TICKS = 10;
 export const EVOLVE_VITAL_THRESHOLD = 70;
 export const EVOLVE_CARE_TICKS = 60;
 export const HEAL_SAFE_BAND = 50;
+
+export const MAX_OFFLINE_MS = 8 * 60 * 60 * 1000;

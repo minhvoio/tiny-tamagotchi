@@ -27,11 +27,27 @@ function setSeed(preset: string | null) {
 describe('state-machine integration', () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    window.localStorage.clear();
+    window.localStorage.setItem(
+      'tiny-tamagotchi:v1',
+      JSON.stringify({
+        version: 1,
+        name: 'Pixel',
+        vitals: { hunger: 100, happiness: 100, energy: 100 },
+        isResting: false,
+        state: 'Normal',
+        hasEvolved: false,
+        neglectTicks: { hunger: 0, happiness: 0, energy: 0 },
+        careTicks: 0,
+        lastTickAt: Date.now(),
+      }),
+    );
   });
 
   afterEach(() => {
     vi.useRealTimers();
     setSeed(null);
+    window.localStorage.clear();
   });
 
   it('Normal → Sick → HEAL → Normal via the sick-near seed', () => {

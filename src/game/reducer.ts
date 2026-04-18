@@ -11,7 +11,14 @@ import {
   SICK_VITAL_THRESHOLD,
   TICK_INTERVAL_MS,
 } from '@/game/constants';
-import type { Action, NeglectCounters, PetModel, SeedPreset, Vitals } from '@/game/state';
+import {
+  initialState,
+  type Action,
+  type NeglectCounters,
+  type PetModel,
+  type SeedPreset,
+  type Vitals,
+} from '@/game/state';
 import { nextState } from '@/game/states';
 import { clamp } from '@/game/util';
 
@@ -111,6 +118,16 @@ export function reducer(state: PetModel, action: Action): PetModel {
         careTicks: 0,
       };
     }
+    case 'RESET': {
+      return { ...initialState };
+    }
+    case 'SET_NAME': {
+      if (state.name === action.name) return state;
+      return { ...state, name: action.name };
+    }
+    case '__HYDRATE__': {
+      return action.state;
+    }
     case '__SEED__': {
       // Exception to the "states.nextState is the only writer" rule: the seed
       // harness exhaustively maps three preset names to hard-coded PetModel
@@ -136,6 +153,7 @@ export function reducer(state: PetModel, action: Action): PetModel {
           ...state,
           vitals: { ...state.vitals, energy: nextEnergy },
           isResting: atMax ? false : state.isResting,
+          lastTickAt: action.nowMs,
         };
       }
       const decay = ticks * DECAY_PER_TICK;
@@ -184,6 +202,7 @@ export function reducer(state: PetModel, action: Action): PetModel {
         careTicks: nextCareTicks,
         state: machine.state,
         hasEvolved: machine.hasEvolved,
+        lastTickAt: action.nowMs,
       };
     }
     default:

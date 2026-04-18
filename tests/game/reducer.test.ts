@@ -16,6 +16,7 @@ import {
 import { clamp } from '@/game/util';
 
 function make(partial: {
+  name?: string;
   hunger?: number;
   happiness?: number;
   energy?: number;
@@ -24,8 +25,10 @@ function make(partial: {
   hasEvolved?: boolean;
   neglectTicks?: Partial<NeglectCounters>;
   careTicks?: number;
+  lastTickAt?: number;
 }): PetModel {
   return {
+    name: partial.name ?? '',
     vitals: {
       hunger: partial.hunger ?? MAX_STAT,
       happiness: partial.happiness ?? MAX_STAT,
@@ -40,6 +43,7 @@ function make(partial: {
       energy: partial.neglectTicks?.energy ?? 0,
     },
     careTicks: partial.careTicks ?? 0,
+    lastTickAt: partial.lastTickAt ?? 0,
   };
 }
 
@@ -210,7 +214,7 @@ describe('reducer — HEAL', () => {
 describe('reducer — TICK while awake', () => {
   it('decays all three vitals by DECAY_PER_TICK per interval', () => {
     const start = make({ hunger: 50, happiness: 60, energy: 70 });
-    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS });
+    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS, nowMs: 0 });
     expect(next.vitals.hunger).toBe(50 - DECAY_PER_TICK);
     expect(next.vitals.happiness).toBe(60 - DECAY_PER_TICK);
     expect(next.vitals.energy).toBe(70 - DECAY_PER_TICK);
@@ -219,15 +223,15 @@ describe('reducer — TICK while awake', () => {
 
   it('is deterministic for a given elapsedMs', () => {
     const start = make({ hunger: 50, happiness: 50, energy: 50 });
-    const a = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS * 2 });
-    const b = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS * 2 });
+    const a = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS * 2, nowMs: 0 });
+    const b = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS * 2, nowMs: 0 });
     expect(a.vitals).toEqual(b.vitals);
     expect(a.vitals.hunger).toBe(50 - 2 * DECAY_PER_TICK);
   });
 
   it('clamps every vital at MIN_STAT rather than going negative', () => {
     const start = make({ hunger: 0, happiness: 0, energy: 0 });
-    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS * 10 });
+    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS * 10, nowMs: 0 });
     expect(next.vitals.hunger).toBe(MIN_STAT);
     expect(next.vitals.happiness).toBe(MIN_STAT);
     expect(next.vitals.energy).toBe(MIN_STAT);
@@ -235,7 +239,7 @@ describe('reducer — TICK while awake', () => {
 
   it('TICK with elapsedMs = 0 is a no-op', () => {
     const start = make({ hunger: 50, happiness: 50, energy: 50 });
-    const next = reducer(start, { type: 'TICK', elapsedMs: 0 });
+    const next = reducer(start, { type: 'TICK', elapsedMs: 0, nowMs: 0 });
     expect(next).toBe(start);
   });
 
@@ -244,6 +248,7 @@ describe('reducer — TICK while awake', () => {
     const next = reducer(start, {
       type: 'TICK',
       elapsedMs: Math.floor(TICK_INTERVAL_MS / 2),
+      nowMs: 0,
     });
     expect(Number.isInteger(next.vitals.hunger)).toBe(true);
     expect(Number.isInteger(next.vitals.happiness)).toBe(true);
@@ -252,7 +257,7 @@ describe('reducer — TICK while awake', () => {
 
   it('increments neglect counter when a vital is at or below SICK_VITAL_THRESHOLD', () => {
     const start = make({ hunger: 11, happiness: 50, energy: 50 });
-    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS });
+    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS, nowMs: 0 });
     expect(next.vitals.hunger).toBe(10);
     expect(next.neglectTicks.hunger).toBe(1);
     expect(next.neglectTicks.happiness).toBe(0);
@@ -266,7 +271,7 @@ describe('reducer — TICK while awake', () => {
       energy: 50,
       neglectTicks: { hunger: 5, happiness: 0, energy: 0 },
     });
-    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS });
+    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS, nowMs: 0 });
     expect(next.vitals.hunger).toBe(19);
     expect(next.neglectTicks.hunger).toBe(0);
   });
@@ -279,7 +284,7 @@ describe('reducer — TICK while awake', () => {
       neglectTicks: { hunger: SICK_NEGLECT_TICKS - 1, happiness: 0, energy: 0 },
       state: 'Normal',
     });
-    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS });
+    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS, nowMs: 0 });
     expect(next.state).toBe('Sick');
     expect(next.neglectTicks.hunger).toBeGreaterThanOrEqual(SICK_NEGLECT_TICKS);
   });
@@ -293,7 +298,7 @@ describe('reducer — TICK while awake', () => {
       state: 'Evolved',
       hasEvolved: true,
     });
-    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS });
+    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS, nowMs: 0 });
     expect(next.state).toBe('Sick');
     expect(next.hasEvolved).toBe(true);
   });
@@ -307,7 +312,7 @@ describe('reducer — TICK while awake', () => {
       state: 'Normal',
       hasEvolved: false,
     });
-    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS });
+    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS, nowMs: 0 });
     expect(next.state).toBe('Evolved');
     expect(next.hasEvolved).toBe(true);
   });
@@ -321,7 +326,7 @@ describe('reducer — TICK while awake', () => {
       hasEvolved: true,
     });
     for (let i = 0; i < 200; i++) {
-      s = reducer(s, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS });
+      s = reducer(s, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS, nowMs: 0 });
       expect(s.hasEvolved).toBe(true);
     }
   });
@@ -336,7 +341,7 @@ describe('reducer — TICK while awake', () => {
       careTicks: 0,
     });
     for (let i = 0; i < EVOLVE_CARE_TICKS + 5; i++) {
-      s = reducer(s, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS });
+      s = reducer(s, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS, nowMs: 0 });
       expect(s.careTicks).toBe(0);
       expect(s.state).toBe('Evolved');
     }
@@ -346,7 +351,7 @@ describe('reducer — TICK while awake', () => {
 describe('reducer — TICK while resting', () => {
   it('adds REST_RECOVERY_PER_TICK to energy only; hunger and happiness are frozen', () => {
     const start = make({ hunger: 40, happiness: 40, energy: 50, isResting: true });
-    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS });
+    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS, nowMs: 0 });
     expect(next.vitals.energy).toBe(50 + REST_RECOVERY_PER_TICK);
     expect(next.vitals.hunger).toBe(40);
     expect(next.vitals.happiness).toBe(40);
@@ -355,7 +360,7 @@ describe('reducer — TICK while resting', () => {
 
   it('clamps energy at MAX_STAT and clears isResting atomically when energy reaches 100', () => {
     const start = make({ hunger: 40, happiness: 40, energy: 95, isResting: true });
-    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS });
+    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS, nowMs: 0 });
     expect(next.vitals.energy).toBe(MAX_STAT);
     expect(next.isResting).toBe(false);
     expect(next.vitals.hunger).toBe(40);
@@ -364,14 +369,14 @@ describe('reducer — TICK while resting', () => {
 
   it('does not clear isResting when energy is still below MAX_STAT after the tick', () => {
     const start = make({ hunger: 40, happiness: 40, energy: 50, isResting: true });
-    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS });
+    const next = reducer(start, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS, nowMs: 0 });
     expect(next.vitals.energy).toBeLessThan(MAX_STAT);
     expect(next.isResting).toBe(true);
   });
 
   it('TICK with elapsedMs = 0 is a no-op while resting', () => {
     const start = make({ energy: 50, isResting: true });
-    const next = reducer(start, { type: 'TICK', elapsedMs: 0 });
+    const next = reducer(start, { type: 'TICK', elapsedMs: 0, nowMs: 0 });
     expect(next).toBe(start);
   });
 
@@ -384,7 +389,7 @@ describe('reducer — TICK while resting', () => {
       neglectTicks: { hunger: 3, happiness: 0, energy: 0 },
     });
     for (let i = 0; i < 5; i++) {
-      s = reducer(s, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS });
+      s = reducer(s, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS, nowMs: 0 });
     }
     expect(s.neglectTicks.hunger).toBe(3);
     expect(s.vitals.hunger).toBe(5);
@@ -400,7 +405,7 @@ describe('reducer — TICK while resting', () => {
       careTicks: 10,
     });
     for (let i = 0; i < 5; i++) {
-      s = reducer(s, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS });
+      s = reducer(s, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS, nowMs: 0 });
     }
     expect(s.isResting).toBe(true);
     expect(s.careTicks).toBe(10);
@@ -417,7 +422,7 @@ describe('reducer — forbidden transitions', () => {
       hasEvolved: true,
     });
     for (let i = 0; i < 100; i++) {
-      s = reducer(s, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS });
+      s = reducer(s, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS, nowMs: 0 });
       expect(s.state === 'Evolved' || s.state === 'Sick').toBe(true);
     }
   });
@@ -431,7 +436,7 @@ describe('reducer — forbidden transitions', () => {
       hasEvolved: false,
     });
     for (let i = 0; i < 50; i++) {
-      s = reducer(s, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS });
+      s = reducer(s, { type: 'TICK', elapsedMs: TICK_INTERVAL_MS, nowMs: 0 });
       expect(s.state).toBe('Sick');
     }
   });
@@ -457,13 +462,13 @@ describe('reducer — forbidden transitions', () => {
         | { type: 'PLAY' }
         | { type: 'REST' }
         | { type: 'HEAL' }
-        | { type: 'TICK'; elapsedMs: number }
+        | { type: 'TICK'; elapsedMs: number; nowMs: number }
     > = [
       () => ({ type: 'FEED' }) as const,
       () => ({ type: 'PLAY' }) as const,
       () => ({ type: 'REST' }) as const,
       () => ({ type: 'HEAL' }) as const,
-      () => ({ type: 'TICK', elapsedMs: TICK_INTERVAL_MS }) as const,
+      () => ({ type: 'TICK', elapsedMs: TICK_INTERVAL_MS, nowMs: 0 }) as const,
     ];
     for (let i = 0; i < 200; i++) {
       const pick = actions[Math.floor(rng() * actions.length)];
@@ -503,6 +508,80 @@ describe('reducer — __SEED__ harness', () => {
   });
 });
 
+describe('reducer — RESET / SET_NAME / __HYDRATE__ / TICK.lastTickAt', () => {
+  it('TICK sets lastTickAt to action.nowMs on the returned state (awake)', () => {
+    const start = make({ hunger: 50, happiness: 50, energy: 50 });
+    const next = reducer(start, {
+      type: 'TICK',
+      elapsedMs: TICK_INTERVAL_MS,
+      nowMs: 12345678,
+    });
+    expect(next.lastTickAt).toBe(12345678);
+  });
+
+  it('TICK sets lastTickAt while resting too', () => {
+    const start = make({
+      hunger: 50,
+      happiness: 50,
+      energy: 20,
+      isResting: true,
+    });
+    const next = reducer(start, {
+      type: 'TICK',
+      elapsedMs: TICK_INTERVAL_MS,
+      nowMs: 99,
+    });
+    expect(next.lastTickAt).toBe(99);
+  });
+
+  it('RESET atomically returns the full initialState shape', () => {
+    const degraded = make({
+      name: 'Buddy',
+      hunger: 10,
+      happiness: 5,
+      energy: 20,
+      state: 'Sick',
+      hasEvolved: true,
+      neglectTicks: { hunger: 5, happiness: 0, energy: 2 },
+      careTicks: 3,
+      lastTickAt: 9999,
+    });
+    const next = reducer(degraded, { type: 'RESET' });
+    expect(next.name).toBe('');
+    expect(next.vitals).toEqual({ hunger: 100, happiness: 100, energy: 100 });
+    expect(next.state).toBe('Normal');
+    expect(next.hasEvolved).toBe(false);
+    expect(next.neglectTicks).toEqual({ hunger: 0, happiness: 0, energy: 0 });
+    expect(next.careTicks).toBe(0);
+    expect(next.lastTickAt).toBe(0);
+    expect(next.isResting).toBe(false);
+  });
+
+  it('SET_NAME sets name to the provided string and leaves other fields unchanged', () => {
+    const next = reducer(initialState, { type: 'SET_NAME', name: 'Pixel' });
+    expect(next.name).toBe('Pixel');
+    expect(next.vitals).toEqual(initialState.vitals);
+    expect(next.state).toBe('Normal');
+  });
+
+  it('SET_NAME is identity when the name is unchanged', () => {
+    const named = { ...initialState, name: 'Pixel' };
+    const next = reducer(named, { type: 'SET_NAME', name: 'Pixel' });
+    expect(next).toBe(named);
+  });
+
+  it('__HYDRATE__ returns action.state directly', () => {
+    const stored: PetModel = {
+      ...initialState,
+      name: 'Stored',
+      vitals: { hunger: 42, happiness: 33, energy: 77 },
+      lastTickAt: 5555,
+    };
+    const next = reducer(initialState, { type: '__HYDRATE__', state: stored });
+    expect(next).toBe(stored);
+  });
+});
+
 describe('reducer — invariants', () => {
   it('returns the same state object when the action type is unknown', () => {
     expect(reducer(initialState, { type: 'UNKNOWN' } as unknown as never)).toBe(initialState);
@@ -517,6 +596,8 @@ describe('reducer — invariants', () => {
     expect(initialState.hasEvolved).toBe(false);
     expect(initialState.neglectTicks).toEqual({ hunger: 0, happiness: 0, energy: 0 });
     expect(initialState.careTicks).toBe(0);
+    expect(initialState.name).toBe('');
+    expect(initialState.lastTickAt).toBe(0);
   });
 });
 
