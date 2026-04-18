@@ -27,6 +27,7 @@ Extend Phase 2's core to cover three vitals, three actions, and the resting mode
 - `PLAY`: when `isResting`, no-op. When `energy < PLAY_MIN_ENERGY`, no-op. Else apply deltas, clamp (energy never below 0).
 - `REST`: from `isResting=false` → sets `true`, no other changes. From `isResting=true` → sets `false`, no other changes.
 - `TICK` while resting: adds `REST_RECOVERY_PER_TICK` to energy, clamps at 100; other vitals unchanged; if energy reaches 100, `isResting` becomes false in the same step.
+- **Auto-wake atomicity test** (explicit, new): starting from `{ energy: 95, isResting: true }`, dispatch one `TICK` with `elapsedMs = TICK_INTERVAL_MS`. Assert the returned state satisfies **both** `energy === 100` **and** `isResting === false` on the same reducer output — not across two dispatches. Guards against future splits that would require a second TICK to clear the flag.
 - `TICK` while awake: decays all three vitals; unchanged behavior for hunger preserved from Phase 2.
   2.2. Update `src/game/reducer.ts` to implement the rules. Keep branches in the order `FEED | PLAY | REST | TICK`.
   2.3. Run `pnpm test` — reducer tests go green. Phase 2 assertions remain green.

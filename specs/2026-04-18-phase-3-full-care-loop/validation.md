@@ -19,6 +19,7 @@ Run from `tiny-tamagotchi/`. Every command must exit with code 0.
 - `src/game/constants.ts` exports `CARE_AMOUNTS`, `PLAY_MIN_ENERGY`, `REST_RECOVERY_PER_TICK`.
 - Reducer clamps every branch to `[0, 100]` and never produces non-integer stats.
 - Reducer: FEED/PLAY are no-ops while `isResting`; REST toggles; TICK while resting only changes energy.
+- **Auto-wake is atomic**: a single `TICK` from `{ energy: 95, isResting: true }` returns a state where `energy === 100` **and** `isResting === false` on the same object. No two-step dance required. A dedicated test in `tests/game/reducer.test.ts` asserts both fields on one reducer output.
 - `src/components/ActionButton.tsx` sets `aria-disabled` and passes `title` only when `disabled` is true.
 - `RestButton` label toggles between `"Rest"` and `"Wake"` based on `isResting`.
 - `src/app/page.tsx` renders the three StatBars in the exact order Hunger, Happiness, Energy, and the three buttons in the order Feed, Play, Rest.
